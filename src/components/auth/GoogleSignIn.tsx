@@ -1,16 +1,14 @@
 import React from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 interface GoogleSignInProps {
   onError?: (error: string) => void;
 }
 
 export const GoogleSignIn: React.FC<GoogleSignInProps> = ({ onError }) => {
-  const { signInWithGoogle } = useAuth();
-  const [loading, setLoading] = React.useState(false);
+  const { signInWithGoogle, loading } = useAuth();
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
     try {
       const { error } = await signInWithGoogle();
       if (error && onError) {
@@ -20,8 +18,6 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({ onError }) => {
       if (onError) {
         onError("An unexpected error occurred");
       }
-    } finally {
-      setLoading(false);
     }
   };
 

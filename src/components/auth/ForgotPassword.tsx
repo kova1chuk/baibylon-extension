@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth";
 
 interface ForgotPasswordProps {
   onSwitchToSignIn: () => void;
@@ -9,26 +9,22 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
   onSwitchToSignIn,
 }) => {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { resetPassword, loading, error, clearError } = useAuth();
 
-  const { resetPassword } = useAuth();
+  // Clear error when component mounts or when switching views
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    clearError();
 
-    const { error } = await resetPassword(email);
-
-    if (error) {
-      setError(error.message);
-    } else {
+    const result = await resetPassword(email);
+    if (!result.error) {
       setSuccess(true);
     }
-
-    setLoading(false);
   };
 
   if (success) {

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../hooks/useAuth";
 import { GoogleSignIn } from "./GoogleSignIn";
 
 interface SignUpProps {
@@ -10,30 +10,27 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { signUp, loading, error, clearError } = useAuth();
 
-  const { signUp } = useAuth();
+  // Clear error when component mounts or when switching views
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    clearError();
 
-    const { error } = await signUp(email, password, fullName);
-
-    if (error) {
-      setError(error.message);
-    } else {
+    const result = await signUp(email, password, fullName);
+    if (!result.error) {
       setSuccess(true);
     }
-
-    setLoading(false);
   };
 
   const handleGoogleError = (error: string) => {
-    setError(error);
+    // Google sign-in errors are handled by the component itself
+    console.error("Google sign-in error:", error);
   };
 
   if (success) {

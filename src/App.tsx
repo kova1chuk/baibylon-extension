@@ -1,59 +1,28 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "./contexts/AuthContext";
+import { useEffect } from "react";
+import { useAuth } from "./hooks/useAuth";
+import { useTextProcessing } from "./hooks/useTextProcessing";
 import { Auth } from "./components/auth/Auth";
 import { UserProfile } from "./components/auth/UserProfile";
 
-interface StoredText {
-  selectedText?: string;
-  sourceUrl?: string;
-  timestamp?: number;
-}
-
 function App() {
-  const { user, loading } = useAuth();
-  const [storedText, setStoredText] = useState<StoredText | null>(null);
-  const [isProcessingText, setIsProcessingText] = useState(false);
+  const { loading, isAuthenticated } = useAuth();
+  const {
+    storedText,
+    isProcessing,
+    processedText,
+    error,
+    hasStoredText,
+    checkForStoredText,
+    clearStoredText,
+    processText,
+  } = useTextProcessing();
 
   // Check for stored text when component mounts
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated) {
       checkForStoredText();
     }
-  }, [user]);
-
-  const checkForStoredText = async () => {
-    try {
-      const response = await chrome.runtime.sendMessage({
-        action: "getStoredText",
-      });
-      if (response && response.selectedText) {
-        setStoredText(response);
-      }
-    } catch {
-      console.log("No stored text found or error occurred");
-    }
-  };
-
-  const clearStoredText = async () => {
-    try {
-      await chrome.runtime.sendMessage({ action: "clearStoredText" });
-      setStoredText(null);
-    } catch (error) {
-      console.error("Error clearing stored text:", error);
-    }
-  };
-
-  const handleProcessText = async () => {
-    if (!storedText?.selectedText) return;
-
-    setIsProcessingText(true);
-    // Simulate AI processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsProcessingText(false);
-
-    // Here you would integrate with your AI service
-    console.log("Processing text with AI:", storedText.selectedText);
-  };
+  }, [isAuthenticated, checkForStoredText]);
 
   // Show loading state
   if (loading) {
@@ -70,7 +39,7 @@ function App() {
   }
 
   // Show authentication if user is not signed in
-  if (!user) {
+  if (!isAuthenticated) {
     return <Auth />;
   }
 
@@ -94,7 +63,7 @@ function App() {
       {/* Content */}
       <div className="p-6">
         {/* Selected Text Display */}
-        {storedText?.selectedText ? (
+        {hasStoredText ? (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold text-blue-900">
@@ -108,19 +77,39 @@ function App() {
               </button>
             </div>
             <div className="text-sm text-blue-800 mb-3 leading-relaxed max-h-24 overflow-y-auto">
-              "{storedText.selectedText}"
+              "{storedText?.selectedText}"
             </div>
-            {storedText.sourceUrl && (
+            {storedText?.sourceUrl && (
               <div className="text-xs text-blue-600 mb-3 truncate">
                 Source: {storedText.sourceUrl}
               </div>
             )}
+
+            {/* Processed Text Display */}
+            {processedText && (
+              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                <h4 className="text-sm font-semibold text-green-900 mb-2">
+                  Processed Result:
+                </h4>
+                <div className="text-sm text-green-800 leading-relaxed">
+                  {processedText}
+                </div>
+              </div>
+            )}
+
+            {/* Error Display */}
+            {error && (
+              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
             <button
-              onClick={handleProcessText}
-              disabled={isProcessingText}
+              onClick={processText}
+              disabled={isProcessing}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-md transition-colors duration-200"
             >
-              {isProcessingText ? (
+              {isProcessing ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
                   Processing...

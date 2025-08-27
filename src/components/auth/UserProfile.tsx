@@ -1,26 +1,30 @@
 import React from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 export const UserProfile: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { userProfile, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  if (!userProfile) {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
       <div className="flex items-center space-x-3">
         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
           <span className="text-white text-sm font-medium">
-            {user?.email?.charAt(0).toUpperCase() || "U"}
+            {userProfile.fullName.charAt(0).toUpperCase()}
           </span>
         </div>
         <div>
           <p className="text-sm font-medium text-gray-900">
-            {user?.user_metadata?.full_name || "User"}
+            {userProfile.fullName}
           </p>
-          <p className="text-xs text-gray-500">{user?.email}</p>
+          <p className="text-xs text-gray-500">{userProfile.email}</p>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ A browser extension that allows users to select text on any webpage and process 
 - **Text Selection**: Select text on any webpage and process it with AI
 - **User Authentication**: Secure authentication powered by Supabase
 - **Google OAuth**: Sign in with Google accounts for convenience
+- **Modern State Management**: Built with Recoil for efficient state management
 - **Modern UI**: Beautiful, responsive interface built with Tailwind CSS
 - **Chrome Extension**: Works seamlessly as a browser extension
 
@@ -72,10 +73,17 @@ src/
 │       ├── SignIn.tsx  # Sign in form
 │       ├── SignUp.tsx  # Sign up form
 │       ├── ForgotPassword.tsx # Password reset
+│       ├── GoogleSignIn.tsx   # Google OAuth button
 │       └── UserProfile.tsx    # User profile display
-├── contexts/
-│   └── AuthContext.tsx # Authentication context
-├── lib/
+├── hooks/               # Custom hooks
+│   ├── useAuth.ts      # Authentication hook
+│   └── useTextProcessing.ts # Text processing hook
+├── providers/           # Context providers
+│   └── AuthProvider.tsx # Recoil-based auth provider
+├── store/               # Recoil state stores
+│   ├── authStore.ts    # Authentication state
+│   └── textStore.ts    # Text processing state
+├── lib/                 # External library configurations
 │   └── supabase.ts     # Supabase client configuration
 ├── App.tsx             # Main application component
 └── main.tsx            # Application entry point
