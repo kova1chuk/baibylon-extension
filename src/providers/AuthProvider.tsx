@@ -13,9 +13,95 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const setLoading = useSetRecoilState(loadingState);
 
   useEffect(() => {
-    // Get initial session
+    // Send Supabase credentials to background script
+    if (typeof chrome !== "undefined" && chrome.runtime) {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      if (supabaseUrl && supabaseAnonKey) {
+        chrome.runtime.sendMessage({
+          action: "setSupabaseCredentials",
+          supabaseUrl,
+          supabaseAnonKey,
+        });
+      }
+    }
+
+    // Get initial session from Chrome storage first
     const getInitialSession = async () => {
       try {
+        // Check for OAuth code first (from background script)
+        if (typeof chrome !== "undefined" && chrome.storage) {
+          const stored = await chrome.storage.local.get([
+            "oauthCode",
+            "oauthCodeTimestamp",
+            "session",
+          ]);
+
+          // If we have an OAuth code, exchange it for session
+          if (stored.oauthCode) {
+            const codeAge = Date.now() - (stored.oauthCodeTimestamp || 0);
+            if (codeAge < 5 * 60 * 1000) {
+              // Code is not too old (5 minutes max)
+              console.log(
+                "WordFlow: Found OAuth code, exchanging for session..."
+              );
+              try {
+                const { data, error: exchangeError } =
+                  await supabase.auth.exchangeCodeForSession(stored.oauthCode);
+
+                if (exchangeError) {
+                  console.error(
+                    "WordFlow: Error exchanging code:",
+                    exchangeError
+                  );
+                  // Remove invalid code to prevent retry loop
+                  await chrome.storage.local.remove([
+                    "oauthCode",
+                    "oauthCodeTimestamp",
+                  ]);
+                } else if (data.session) {
+                  console.log("WordFlow: Session created from code exchange");
+                  setSession(data.session);
+                  setUser(data.session.user);
+                  // Save session and clear code
+                  await chrome.storage.local.set({ session: data.session });
+                  await chrome.storage.local.remove([
+                    "oauthCode",
+                    "oauthCodeTimestamp",
+                  ]);
+                  setLoading(false);
+                  return;
+                }
+              } catch (err) {
+                console.error("WordFlow: Exception during code exchange:", err);
+                // Remove code on error to prevent retry loop
+                await chrome.storage.local.remove([
+                  "oauthCode",
+                  "oauthCodeTimestamp",
+                ]);
+              }
+            } else {
+              // Code is too old, remove it
+              await chrome.storage.local.remove([
+                "oauthCode",
+                "oauthCodeTimestamp",
+              ]);
+            }
+          }
+
+          // Try to get session from Chrome storage (set by background script)
+          if (stored.session) {
+            const { error } = await supabase.auth.setSession(stored.session);
+            if (!error) {
+              setSession(stored.session);
+              setUser(stored.session.user ?? null);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Fallback to Supabase session
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -28,6 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
+    // Only run once on mount
     getInitialSession();
 
     // Listen for auth changes
@@ -36,13 +123,92 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
 
+      // For sign out events, immediately set loading to false and clear state
+      if (event === "SIGNED_OUT" || !session) {
+        setLoading(false);
+        setSession(null);
+        setUser(null);
+
+        // Clear Chrome storage on sign out
+        if (typeof chrome !== "undefined" && chrome.storage) {
+          await chrome.storage.local.remove([
+            "session",
+            "oauthCode",
+            "oauthCodeTimestamp",
+          ]);
+        }
+        return;
+      }
+
+      // Always set loading to false first to prevent infinite loops
+      setLoading(false);
+
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+
+      // If user is authenticated, try to fetch/update user profile from database
+      if (session?.user) {
+        try {
+          // Optionally fetch user profile from user_profiles table if it exists
+          // This ensures we have the latest user data
+          const { data: profile, error: profileError } = await supabase
+            .from("user_profiles")
+            .select("full_name, email")
+            .eq("id", session.user.id)
+            .single();
+
+          if (!profileError && profile) {
+            // Update user metadata if profile exists in database
+            // Note: This doesn't modify the auth user, just ensures we have the data
+            console.log("User profile loaded from database:", profile);
+          }
+        } catch (error) {
+          // Silently fail if user_profiles table doesn't exist or query fails
+          // This is okay - we'll use user_metadata as fallback
+          console.log(
+            "Could not fetch user profile from database, using user_metadata"
+          );
+        }
+      }
+
+      // Save session to Chrome storage when it changes
+      if (session && typeof chrome !== "undefined" && chrome.storage) {
+        chrome.storage.local.set({ session });
+      }
     });
 
     return () => subscription.unsubscribe();
   }, [setUser, setSession, setLoading]);
+
+  // Safety mechanism: ensure loading is always set to false after a timeout
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 10000); // 10 second safety timeout
+
+    return () => clearTimeout(timeout);
+  }, [setLoading]);
+
+  // Listen for OAuth completion message from background script
+  useEffect(() => {
+    if (typeof chrome !== "undefined" && chrome.runtime) {
+      const messageListener = (message: any) => {
+        if (message.action === "oauthComplete" && message.session) {
+          console.log("WordFlow: Received OAuth completion message");
+          setSession(message.session);
+          setUser(message.session.user);
+          if (typeof chrome !== "undefined" && chrome.storage) {
+            chrome.storage.local.set({ session: message.session });
+          }
+        }
+      };
+
+      chrome.runtime.onMessage.addListener(messageListener);
+      return () => {
+        chrome.runtime.onMessage.removeListener(messageListener);
+      };
+    }
+  }, [setUser, setSession]);
 
   return <>{children}</>;
 };

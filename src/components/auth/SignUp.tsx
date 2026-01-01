@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { GoogleSignIn } from "./GoogleSignIn";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Alert, AlertDescription } from "../ui/alert";
+import { Separator } from "../ui/separator";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 
 interface SignUpProps {
   onSwitchToSignIn: () => void;
@@ -35,31 +41,30 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
 
   if (success) {
     return (
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-          <span className="text-2xl">✅</span>
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900">Check your email</h2>
-        <p className="text-gray-600">
-          We've sent you a confirmation link to verify your email address.
-        </p>
-        <button
-          onClick={onSwitchToSignIn}
-          className="text-blue-600 hover:text-blue-700 font-medium"
-        >
-          Back to sign in
-        </button>
-      </div>
+      <Card>
+        <CardContent className="text-center space-y-4 pt-6">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+            <span className="text-2xl">✅</span>
+          </div>
+          <CardTitle>Check your email</CardTitle>
+          <CardDescription>
+            We've sent you a confirmation link to verify your email address.
+          </CardDescription>
+          <Button variant="link" onClick={onSwitchToSignIn}>
+            Back to sign in
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-foreground">
           Create your account
         </h2>
-        <p className="text-gray-600 mt-2">
+        <p className="text-muted-foreground mt-2">
           Join WordFlow to start processing text with AI
         </p>
       </div>
@@ -70,92 +75,71 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
       {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <Separator />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">Or continue with</span>
+          <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        <div>
-          <label
-            htmlFor="fullName"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Full name
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="fullName">Full name</Label>
+          <Input
             id="fullName"
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Enter your full name"
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Email address
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="email">Email address</Label>
+          <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Enter your email"
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Password
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Create a password (min 6 characters)"
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-md transition-colors duration-200"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Creating account..." : "Create account"}
-        </button>
+        </Button>
       </form>
 
       <div className="text-center">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <button
+          <Button
+            variant="link"
             onClick={onSwitchToSignIn}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm p-0 h-auto"
           >
             Sign in
-          </button>
+          </Button>
         </div>
       </div>
     </div>

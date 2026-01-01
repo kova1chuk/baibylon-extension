@@ -3,7 +3,10 @@
   "name": "WordFlow Extension",
   "version": "0.0.1",
   "description": "A Chrome extension for WordFlow",
-  "permissions": ["activeTab", "storage", "contextMenus"],
+  "permissions": ["activeTab", "storage", "contextMenus", "identity", "tabs"],
+  "host_permissions": [
+    "https://*.supabase.co/*"
+  ],
   "action": {
     "default_popup": "index.html",
     "default_title": "WordFlow"

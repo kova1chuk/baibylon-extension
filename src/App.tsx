@@ -3,6 +3,12 @@ import { useAuth } from "./hooks/useAuth";
 import { useTextProcessing } from "./hooks/useTextProcessing";
 import { Auth } from "./components/auth/Auth";
 import { UserProfile } from "./components/auth/UserProfile";
+import { ThemeToggle } from "./components/ThemeToggle";
+import { OAuthCallback } from "./components/OAuthCallback";
+import { Button } from "./components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import { Alert, AlertDescription } from "./components/ui/alert";
+import { Badge } from "./components/ui/badge";
 
 function App() {
   const { loading, isAuthenticated } = useAuth();
@@ -17,6 +23,14 @@ function App() {
     processText,
   } = useTextProcessing();
 
+  // Check if we have OAuth callback in URL (code parameter or tokens in hash)
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasOAuthCode = urlParams.get("code") !== null;
+  const hasOAuthCallback =
+    hasOAuthCode ||
+    window.location.hash.includes("access_token=") ||
+    window.location.hash.includes("error=");
+
   // Check for stored text when component mounts
   useEffect(() => {
     if (isAuthenticated) {
@@ -27,15 +41,20 @@ function App() {
   // Show loading state
   if (loading) {
     return (
-      <div className="w-96 min-h-[500px] bg-white text-gray-900 overflow-hidden">
+      <div className="w-96 min-h-[500px] bg-background text-foreground overflow-hidden">
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
       </div>
     );
+  }
+
+  // Show OAuth callback handler if we have tokens in URL
+  if (hasOAuthCallback && !isAuthenticated) {
+    return <OAuthCallback />;
   }
 
   // Show authentication if user is not signed in
@@ -45,102 +64,111 @@ function App() {
 
   // Show main app if user is authenticated
   return (
-    <div className="w-96 min-h-[500px] bg-white text-gray-900 overflow-hidden">
-      {/* User Profile Header */}
-      <UserProfile />
+    <div className="w-96 min-h-[500px] bg-background text-foreground overflow-hidden flex flex-col">
+      {/* User Profile Header - Always show when authenticated */}
+      {isAuthenticated && (
+        <div className="flex items-center justify-between p-4 bg-card border-b border-border">
+          <UserProfile />
+          <ThemeToggle />
+        </div>
+      )}
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3">
+      <Card className="rounded-none border-x-0 border-t-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+        <CardHeader className="text-center pb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-foreground/20 rounded-xl mb-3">
             <span className="text-xl">✍️</span>
           </div>
-          <h1 className="text-xl font-bold mb-1">WordFlow</h1>
-          <p className="text-blue-100 text-sm">Process selected text with AI</p>
-        </div>
-      </div>
+          <CardTitle className="text-xl mb-1 text-primary-foreground">WordFlow</CardTitle>
+          <CardDescription className="text-primary-foreground/80">
+            Process selected text with AI
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* Content */}
-      <div className="p-6">
+      <div className="p-6 flex-1 overflow-y-auto">
         {/* Selected Text Display */}
         {hasStoredText ? (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-blue-900">
-                Selected Text
-              </h3>
-              <button
-                onClick={clearStoredText}
-                className="text-blue-500 hover:text-blue-700 text-xs"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="text-sm text-blue-800 mb-3 leading-relaxed max-h-24 overflow-y-auto">
-              "{storedText?.selectedText}"
-            </div>
-            {storedText?.sourceUrl && (
-              <div className="text-xs text-blue-600 mb-3 truncate">
-                Source: {storedText.sourceUrl}
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">Selected Text</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={clearStoredText}
+                >
+                  ✕
+                </Button>
               </div>
-            )}
-
-            {/* Processed Text Display */}
-            {processedText && (
-              <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-md">
-                <h4 className="text-sm font-semibold text-green-900 mb-2">
-                  Processed Result:
-                </h4>
-                <div className="text-sm text-green-800 leading-relaxed">
-                  {processedText}
-                </div>
-              </div>
-            )}
-
-            {/* Error Display */}
-            {error && (
-              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{error}</p>
-              </div>
-            )}
-
-            <button
-              onClick={processText}
-              disabled={isProcessing}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium rounded-md transition-colors duration-200"
-            >
-              {isProcessing ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
-                  Processing...
-                </div>
-              ) : (
-                "🤖 Process with AI"
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground leading-relaxed max-h-24 overflow-y-auto">
+                "{storedText?.selectedText}"
+              </p>
+              {storedText?.sourceUrl && (
+                <p className="text-xs text-muted-foreground truncate">
+                  Source: {storedText.sourceUrl}
+                </p>
               )}
-            </button>
-          </div>
+
+              {/* Processed Text Display */}
+              {processedText && (
+                <Alert>
+                  <AlertDescription className="space-y-2">
+                    <p className="text-sm font-semibold">Processed Result:</p>
+                    <p className="text-sm leading-relaxed">{processedText}</p>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Error Display */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button
+                onClick={processText}
+                disabled={isProcessing}
+                className="w-full"
+              >
+                {isProcessing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-foreground mr-2"></div>
+                    Processing...
+                  </>
+                ) : (
+                  "🤖 Process with AI"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">📝</span>
-            </div>
-            <h2 className="text-lg font-semibold mb-3 text-gray-900">
-              No Text Selected
-            </h2>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              Select text on any webpage, right-click, and choose "WordFlow:
-              Process with AI" from the context menu to get started.
-            </p>
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="text-center py-12">
+              <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📝</span>
+              </div>
+              <CardTitle className="text-lg mb-3">No Text Selected</CardTitle>
+              <CardDescription className="text-sm leading-relaxed">
+                Select text on any webpage, right-click, and choose "WordFlow:
+                Process with AI" from the context menu to get started.
+              </CardDescription>
+            </CardContent>
+          </Card>
         )}
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="px-6 py-4 border-t border-border bg-card mt-auto">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="font-medium">Version 0.0.1</span>
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <Badge variant="outline" className="h-2 w-2 p-0 bg-green-500 border-green-500"></Badge>
             <span className="font-medium">Ready</span>
           </div>
         </div>

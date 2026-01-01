@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { SignIn } from "./SignIn";
 import { SignUp } from "./SignUp";
 import { ForgotPassword } from "./ForgotPassword";
+import { ThemeToggle } from "../ThemeToggle";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 
 type AuthView = "signin" | "signup" | "forgot-password";
 
@@ -34,24 +36,31 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="w-96 min-h-[500px] bg-white text-gray-900 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl mb-3">
-            <span className="text-xl">✍️</span>
-          </div>
-          <h1 className="text-xl font-bold mb-1">WordFlow</h1>
-          <p className="text-blue-100 text-sm">Sign in to continue</p>
-        </div>
+    <div className="w-96 min-h-[500px] bg-background text-foreground overflow-hidden flex flex-col">
+      {/* Theme Toggle */}
+      <div className="flex justify-end p-4">
+        <ThemeToggle />
       </div>
 
+      {/* Header */}
+      <Card className="rounded-none border-x-0 border-t-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
+        <CardHeader className="text-center pb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-foreground/20 rounded-xl mb-3">
+            <span className="text-xl">✍️</span>
+          </div>
+          <CardTitle className="text-xl mb-1 text-primary-foreground">WordFlow</CardTitle>
+          <CardDescription className="text-primary-foreground/80">
+            Sign in to continue
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
       {/* Auth Content */}
-      <div className="p-6">{renderAuthView()}</div>
+      <div className="p-6 flex-1 overflow-y-auto">{renderAuthView()}</div>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-        <div className="text-center text-xs text-gray-500">
+      <div className="px-6 py-4 border-t border-border bg-card mt-auto">
+        <div className="text-center text-xs text-muted-foreground">
           <span className="font-medium">
             Secure authentication powered by Supabase
           </span>

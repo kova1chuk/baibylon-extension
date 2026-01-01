@@ -11,10 +11,10 @@ import {
 } from "../store/authStore";
 
 export const useAuth = () => {
-  const [user, setUser] = useRecoilState(userState);
-  const [session, setSession] = useRecoilState(sessionState);
-  const [loading, setLoading] = useRecoilState(loadingState);
-  const [error, setError] = useRecoilState(authErrorState);
+  const [user] = useRecoilState(userState);
+  const [session] = useRecoilState(sessionState);
+  const [loading] = useRecoilState(loadingState);
+  const [error] = useRecoilState(authErrorState);
 
   const isAuthenticated = useRecoilValue(isAuthenticatedSelector);
   const userProfile = useRecoilValue(userProfileSelector);
@@ -58,26 +58,55 @@ export const useAuth = () => {
     setErrorState(null);
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Use Chrome identity API to get the proper redirect URL
+      // This generates: https://YOUR_EXTENSION_ID.chromiumapp.org
+      const redirectUrl =
+        typeof chrome !== "undefined" &&
+        chrome.identity &&
+        chrome.identity.getRedirectURL
+          ? chrome.identity.getRedirectURL().replace(/\/$/, "") // Remove trailing slash
+          : window.location.origin + "/index.html";
+
+      console.log("WordFlow: OAuth redirect URL:", redirectUrl);
+      console.log(
+        "WordFlow: Extension ID:",
+        typeof chrome !== "undefined" ? chrome.runtime.id : "N/A"
+      );
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: chrome.runtime.getURL("index.html"),
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
           },
+          // Skip browser redirect - we'll handle it manually
+          skipBrowserRedirect: false,
         },
       });
 
       if (error) {
+        console.error("WordFlow: OAuth error:", error);
         setErrorState(error.message);
         return { error };
       }
 
-      return { error: null };
+      console.log("WordFlow: OAuth URL generated:", data?.url);
+
+      // Open OAuth in a new tab (more reliable than popup)
+      if (data?.url && typeof chrome !== "undefined" && chrome.tabs) {
+        await chrome.tabs.create({ url: data.url });
+      } else {
+        // Fallback for non-extension environments
+        window.location.href = data.url;
+      }
+
+      return { error: null, data };
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred";
+      console.error("WordFlow: OAuth exception:", err);
       setErrorState(errorMessage);
       return { error: { message: errorMessage } };
     } finally {
@@ -120,21 +149,34 @@ export const useAuth = () => {
   );
 
   const signOut = useCallback(async () => {
-    setLoadingState(true);
     setErrorState(null);
+    // Don't set loading to true - let the auth state change handler manage it
+    // This prevents conflicts and infinite loops
 
     try {
-      await supabase.auth.signOut();
+      // Clear state immediately for better UX
       setUserState(null);
       setSessionState(null);
+
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+
+      // Clear Chrome storage on sign out
+      if (typeof chrome !== "undefined" && chrome.storage) {
+        await chrome.storage.local.remove([
+          "session",
+          "oauthCode",
+          "oauthCodeTimestamp",
+        ]);
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred";
       setErrorState(errorMessage);
-    } finally {
+      // Ensure loading is false even on error
       setLoadingState(false);
     }
-  }, [setLoadingState, setErrorState, setUserState, setSessionState]);
+  }, [setErrorState, setUserState, setSessionState, setLoadingState]);
 
   const resetPassword = useCallback(
     async (email: string) => {

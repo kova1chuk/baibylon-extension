@@ -10,10 +10,10 @@ import {
 } from "../store/textStore";
 
 export const useTextProcessing = () => {
-  const [storedText, setStoredText] = useRecoilState(storedTextState);
-  const [isProcessing, setIsProcessing] = useRecoilState(isProcessingState);
-  const [processedText, setProcessedText] = useRecoilState(processedTextState);
-  const [error, setError] = useRecoilState(textErrorState);
+  const [storedText] = useRecoilState(storedTextState);
+  const [isProcessing] = useRecoilState(isProcessingState);
+  const [processedText] = useRecoilState(processedTextState);
+  const [error] = useRecoilState(textErrorState);
 
   const hasStoredText = useRecoilValue(hasStoredTextSelector);
   const processingStatus = useRecoilValue(textProcessingStatusSelector);
