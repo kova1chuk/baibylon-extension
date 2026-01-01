@@ -4,7 +4,7 @@ echo "🚀 Starting WordFlow Extension development..."
 
 # Build the extension
 echo "📦 Building extension..."
-npm run build:extension
+pnpm run build:extension
 
 if [ $? -eq 0 ]; then
     echo "✅ Build successful!"
@@ -16,8 +16,8 @@ if [ $? -eq 0 ]; then
     echo "4. Select the 'dist' folder from this project"
     echo "5. Your extension should now appear!"
     echo ""
-    echo "🔄 To rebuild after changes, run: npm run build:extension"
-    echo "👀 For auto-rebuild during development, run: npm run watch:extension"
+    echo "🔄 To rebuild after changes, run: pnpm run build:extension"
+    echo "👀 For auto-rebuild during development, run: pnpm run watch:extension"
 else
     echo "❌ Build failed!"
     exit 1

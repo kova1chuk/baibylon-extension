@@ -16,7 +16,7 @@ A browser extension that allows users to select text on any webpage and process 
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- npm or yarn
+- pnpm (install with `npm install -g pnpm`)
 - A Supabase account and project
 
 ### Installation
@@ -31,7 +31,7 @@ cd word-flow-extension
 2. Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 3. Set up Supabase authentication (see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for detailed instructions)
@@ -46,22 +46,22 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 5. Start the development server:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 6. Build the extension:
 
 ```bash
-npm run build:extension
+pnpm run build:extension
 ```
 
 ## Development
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run build:extension` - Build the Chrome extension
-- `npm run watch:extension` - Watch mode for extension development
-- `npm run lint` - Run ESLint
+- `pnpm run dev` - Start development server
+- `pnpm run build` - Build for production
+- `pnpm run build:extension` - Build the Chrome extension
+- `pnpm run watch:extension` - Watch mode for extension development
+- `pnpm run lint` - Run ESLint
 
 ## Project Structure
 

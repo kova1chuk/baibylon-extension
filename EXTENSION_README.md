@@ -7,7 +7,7 @@ This is a Chrome extension built with React, TypeScript, and Vite.
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- npm or yarn
+- pnpm (install with `npm install -g pnpm`)
 
 ### Tailwind CSS Setup
 
@@ -26,18 +26,18 @@ The build system automatically scans all React components and generates optimize
 1. Install dependencies:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. Build the extension:
 
    ```bash
-   npm run build:extension
+   pnpm run build:extension
    ```
 
 3. For development with auto-rebuild:
    ```bash
-   npm run watch:extension
+   pnpm run watch:extension
    ```
 
 ### Loading the Extension in Chrome
@@ -71,7 +71,7 @@ The build process creates:
 ### Development Workflow
 
 1. Make changes to your source files
-2. Run `npm run build:extension` to rebuild
+2. Run `pnpm run build:extension` to rebuild
 3. Go to `chrome://extensions/` and click the refresh button on your extension
 4. Test your changes
 
