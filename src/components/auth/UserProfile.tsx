@@ -12,8 +12,11 @@ export const UserProfile: React.FC = () => {
 
   // Always show user profile if authenticated, even if userProfile is null
   // Fallback to user data if userProfile is not available
-  const displayName = userProfile?.fullName || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
-  const displayEmail = userProfile?.email || user?.email || "";
+  const displayName =
+    userProfile?.fullName ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
+    "User";
   const initials = displayName.charAt(0).toUpperCase();
 
   if (!user && !userProfile) {
@@ -21,27 +24,37 @@ export const UserProfile: React.FC = () => {
   }
 
   return (
-    <div className="flex items-center space-x-3 flex-1 min-w-0">
-      <Avatar className="h-8 w-8">
-        <AvatarFallback className="bg-primary text-primary-foreground">
+    <div className="flex items-center gap-2">
+      <Avatar className="h-7 w-7">
+        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
           {initials}
         </AvatarFallback>
       </Avatar>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground truncate">
+      <div className="flex-1 min-w-0 hidden sm:block">
+        <p className="text-xs font-medium text-foreground truncate">
           {displayName}
         </p>
-        {displayEmail && (
-          <p className="text-xs text-muted-foreground truncate">{displayEmail}</p>
-        )}
       </div>
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
         onClick={handleSignOut}
-        className="flex-shrink-0"
+        className="h-7 w-7"
+        title="Sign out"
       >
-        Sign out
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+          />
+        </svg>
       </Button>
     </div>
   );

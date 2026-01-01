@@ -33,10 +33,22 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       const container = root.shadowRoot.getElementById("shadow-root-container");
       if (container) {
         container.setAttribute("data-theme", theme);
+        // Also add/remove .dark class for CSS compatibility
+        if (theme === "dark") {
+          container.classList.add("dark");
+        } else {
+          container.classList.remove("dark");
+        }
       }
     }
     // Also apply to document for any non-shadow elements
     document.documentElement.setAttribute("data-theme", theme);
+    // Add/remove .dark class on documentElement for CSS compatibility
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
     // Store in localStorage
     localStorage.setItem("baibylon-theme", theme);
     // Dispatch custom event for theme change

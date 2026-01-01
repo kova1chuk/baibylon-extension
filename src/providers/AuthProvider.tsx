@@ -36,7 +36,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             "oauthCodeTimestamp",
             "session",
             "oauthCodeProcessing",
+            "signedOut",
+            "signedOutTimestamp",
           ]);
+
+          // Check if user recently signed out (within last 5 minutes)
+          // If so, don't restore any session
+          if (stored.signedOut && stored.signedOutTimestamp) {
+            const signOutAge = Date.now() - stored.signedOutTimestamp;
+            if (signOutAge < 5 * 60 * 1000) {
+              // User signed out recently, clear everything and don't restore
+              console.log(
+                "Baibylon: User recently signed out, not restoring session"
+              );
+              setSession(null);
+              setUser(null);
+              setLoading(false);
+              // Clear the sign-out flag after checking
+              await chrome.storage.local.remove([
+                "signedOut",
+                "signedOutTimestamp",
+              ]);
+              return;
+            } else {
+              // Sign-out flag is old, remove it
+              await chrome.storage.local.remove([
+                "signedOut",
+                "signedOutTimestamp",
+              ]);
+            }
+          }
 
           // If we have an OAuth code, exchange it for session
           // Use a lock to prevent multiple instances from processing the same code
@@ -124,23 +153,81 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
 
           // Try to get session from Chrome storage (set by background script)
+          // But first verify it's still valid with Supabase
           if (stored.session) {
-            const { error } = await supabase.auth.setSession(stored.session);
-            if (!error) {
-              setSession(stored.session);
-              setUser(stored.session.user ?? null);
+            // Check if session is expired
+            const expiresAt = stored.session.expires_at;
+            if (expiresAt && expiresAt * 1000 < Date.now()) {
+              // Session expired, remove it
+              await chrome.storage.local.remove(["session"]);
+            } else {
+              // Try to set the session and verify it's still valid
+              const { data, error } = await supabase.auth.setSession(
+                stored.session
+              );
+              if (!error && data.session) {
+                // Session is valid
+                setSession(data.session);
+                setUser(data.session.user ?? null);
+                // Update stored session in case it was refreshed
+                await chrome.storage.local.set({ session: data.session });
+                setLoading(false);
+                return;
+              } else {
+                // Session is invalid, remove it
+                await chrome.storage.local.remove(["session"]);
+              }
+            }
+          }
+        }
+
+        // Fallback to Supabase session (this will be null if signed out)
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        // Check sign-out flag again before restoring session
+        if (typeof chrome !== "undefined" && chrome.storage) {
+          const signOutCheck = await chrome.storage.local.get([
+            "signedOut",
+            "signedOutTimestamp",
+          ]);
+          if (signOutCheck.signedOut && signOutCheck.signedOutTimestamp) {
+            const signOutAge = Date.now() - signOutCheck.signedOutTimestamp;
+            if (signOutAge < 5 * 60 * 1000) {
+              // User signed out recently, don't restore session
+              setSession(null);
+              setUser(null);
               setLoading(false);
               return;
             }
           }
         }
 
-        // Fallback to Supabase session
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
+        // Only set session if it exists and is valid
+        if (session) {
+          setSession(session);
+          setUser(session.user ?? null);
+          // Save to Chrome storage and clear sign-out flag
+          if (typeof chrome !== "undefined" && chrome.storage) {
+            await chrome.storage.local.set({ session });
+            await chrome.storage.local.remove([
+              "signedOut",
+              "signedOutTimestamp",
+            ]);
+          }
+        } else {
+          // No session - ensure everything is cleared
+          setSession(null);
+          setUser(null);
+          if (typeof chrome !== "undefined" && chrome.storage) {
+            await chrome.storage.local.remove([
+              "session",
+              "signedOut",
+              "signedOutTimestamp",
+            ]);
+          }
+        }
       } catch (error) {
         console.error("Error getting initial session:", error);
       } finally {
@@ -163,14 +250,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(null);
         setUser(null);
 
-        // Clear Chrome storage on sign out
+        // Set sign-out flag and clear Chrome storage on sign out
         if (typeof chrome !== "undefined" && chrome.storage) {
+          await chrome.storage.local.set({
+            signedOut: true,
+            signedOutTimestamp: Date.now(),
+          });
           await chrome.storage.local.remove([
             "session",
             "oauthCode",
             "oauthCodeTimestamp",
+            "oauthCodeProcessing",
           ]);
+
+          // Clear all Supabase-related keys
+          try {
+            const allKeys = await chrome.storage.local.get(null);
+            const supabaseKeys = Object.keys(allKeys).filter(
+              (key) =>
+                key.startsWith("sb-") ||
+                key.includes("supabase") ||
+                (key.includes("auth") &&
+                  key !== "signedOut" &&
+                  key !== "signedOutTimestamp")
+            );
+            if (supabaseKeys.length > 0) {
+              await chrome.storage.local.remove(supabaseKeys);
+            }
+          } catch (storageErr) {
+            console.error("Error clearing Supabase storage:", storageErr);
+          }
         }
+
         return;
       }
 

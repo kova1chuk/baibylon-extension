@@ -4,7 +4,8 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Alert, AlertDescription } from "../ui/alert";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { MailIcon } from "../icons";
+import { Card, CardContent } from "../ui/card";
 
 interface ForgotPasswordProps {
   onSwitchToSignIn: () => void;
@@ -34,65 +35,74 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
 
   if (success) {
     return (
-      <Card>
-        <CardContent className="text-center space-y-4 pt-6">
-          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-            <span className="text-2xl">📧</span>
+      <div className="text-center space-y-4 py-6">
+        <div className="relative mx-auto w-16 h-16">
+          <div className="absolute inset-0 bg-primary/10 rounded-2xl blur-xl"></div>
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+            <MailIcon className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>
-            We've sent you a password reset link. Please check your email and
-            follow the instructions.
-          </CardDescription>
-          <Button variant="link" onClick={onSwitchToSignIn}>
-            Back to sign in
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold">Check your email</h3>
+          <p className="text-sm text-muted-foreground">
+            We've sent a password reset link. Check your email and follow the instructions.
+          </p>
+        </div>
+        <Button variant="link" onClick={onSwitchToSignIn} className="text-sm h-auto p-0">
+          Back to sign in
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground">
-          Reset your password
-        </h2>
-        <p className="text-muted-foreground mt-2">
-          Enter your email address and we'll send you a link to reset your
-          password.
+    <div className="space-y-5">
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-semibold text-foreground">Reset password</h2>
+        <p className="text-sm text-muted-foreground">
+          Enter your email and we'll send a reset link
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      {/* Form - Nested Card */}
+      <Card className="border-border/50 shadow-sm bg-card">
+        <CardContent className="p-4 space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {error && (
+              <Alert variant="destructive" className="py-2">
+                <AlertDescription className="text-xs">{error}</AlertDescription>
+              </Alert>
+            )}
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="Enter your email"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="your@email.com"
+                className="h-9 text-sm"
+              />
+            </div>
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Sending..." : "Send reset link"}
-        </Button>
-      </form>
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full h-11 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+            >
+              {loading ? "Sending..." : "Send reset link"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-      <div className="text-center">
+      <div className="text-center pt-2">
         <Button
           variant="link"
           onClick={onSwitchToSignIn}
-          className="text-sm"
+          className="text-xs h-auto p-0"
         >
           Back to sign in
         </Button>

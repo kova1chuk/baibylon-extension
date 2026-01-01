@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RecoilRoot } from "recoil";
-import "./index.css"; // Import CSS - Vite will bundle it
+import "./global.css"; // Import CSS - Vite will bundle it
 import App from "./App.tsx";
 import { AuthProvider } from "./providers/AuthProvider";
 import { ThemeProvider } from "./providers/ThemeProvider";
@@ -45,6 +45,10 @@ function initApp() {
     const shadowContainer = document.createElement("div");
     shadowContainer.id = "shadow-root-container";
     shadowContainer.setAttribute("data-theme", theme);
+    // Add .dark class if dark theme for CSS compatibility
+    if (theme === "dark") {
+      shadowContainer.classList.add("dark");
+    }
     shadowContainer.style.width = "100%";
     shadowContainer.style.height = "100%";
     shadowRoot.appendChild(shadowContainer);
@@ -93,6 +97,12 @@ function initApp() {
     const updateTheme = () => {
       const newTheme = localStorage.getItem("baibylon-theme") || "light";
       shadowContainer.setAttribute("data-theme", newTheme);
+      // Update .dark class for CSS compatibility
+      if (newTheme === "dark") {
+        shadowContainer.classList.add("dark");
+      } else {
+        shadowContainer.classList.remove("dark");
+      }
     };
 
     window.addEventListener("storage", (e) => {

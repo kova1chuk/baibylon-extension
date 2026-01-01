@@ -150,19 +150,22 @@ export const useAuth = () => {
 
   const signOut = useCallback(async () => {
     setErrorState(null);
-    // Don't set loading to true - let the auth state change handler manage it
-    // This prevents conflicts and infinite loops
+    // Don't set loading to true - clear immediately for better UX
+    // The onAuthStateChange handler will manage loading state
 
     try {
       // Clear state immediately for better UX
       setUserState(null);
       setSessionState(null);
+      setLoadingState(false);
 
-      // Sign out from Supabase
-      await supabase.auth.signOut();
-
-      // Clear Chrome storage on sign out
+      // Set a sign-out flag in Chrome storage to prevent session restoration
       if (typeof chrome !== "undefined" && chrome.storage) {
+        await chrome.storage.local.set({
+          signedOut: true,
+          signedOutTimestamp: Date.now(),
+        });
+        // Clear all auth-related storage
         await chrome.storage.local.remove([
           "session",
           "oauthCode",
@@ -170,12 +173,53 @@ export const useAuth = () => {
           "oauthCodeProcessing",
         ]);
       }
+
+      // Sign out from Supabase (this will trigger onAuthStateChange)
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Sign out error:", error);
+      }
+
+      // Clear Supabase's internal storage as well
+      try {
+        // Clear all Supabase auth keys from Chrome storage
+        if (typeof chrome !== "undefined" && chrome.storage) {
+          const allKeys = await chrome.storage.local.get(null);
+          const supabaseKeys = Object.keys(allKeys).filter(
+            (key) =>
+              key.startsWith("sb-") ||
+              key.includes("supabase") ||
+              key.includes("auth")
+          );
+          if (supabaseKeys.length > 0) {
+            await chrome.storage.local.remove(supabaseKeys);
+          }
+        }
+      } catch (storageErr) {
+        console.error("Error clearing Supabase storage:", storageErr);
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred";
+      console.error("Sign out exception:", err);
       setErrorState(errorMessage);
       // Ensure loading is false even on error
       setLoadingState(false);
+
+      // Still clear Chrome storage even on error
+      if (typeof chrome !== "undefined" && chrome.storage) {
+        await chrome.storage.local.set({
+          signedOut: true,
+          signedOutTimestamp: Date.now(),
+        });
+        await chrome.storage.local.remove([
+          "session",
+          "oauthCode",
+          "oauthCodeTimestamp",
+          "oauthCodeProcessing",
+        ]);
+      }
     }
   }, [setErrorState, setUserState, setSessionState, setLoadingState]);
 

@@ -1,14 +1,15 @@
-import { useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 import { Button } from "./ui/button";
+import { AlertTriangleIcon } from "./icons";
 
 /**
  * Component to handle OAuth callback if user is redirected to the extension popup
  * This is a fallback in case the background script doesn't catch the redirect
  */
 export const OAuthCallback: React.FC = () => {
-  const { setUser, setSession } = useAuth();
+  const [processing, setProcessing] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -36,29 +37,27 @@ export const OAuthCallback: React.FC = () => {
         }
         
         if (errorParam) {
-          console.error("WordFlow: OAuth error:", errorParam);
+          console.error("Baibylon: OAuth error:", errorParam);
           setError(errorParam);
           setProcessing(false);
           return;
         }
         
         if (oauthCode) {
-          console.log("WordFlow: OAuth code found, exchanging for session...");
+          console.log("Baibylon: OAuth code found, exchanging for session...");
           
           // Exchange code for session using Supabase client (has code_verifier)
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(oauthCode);
           
           if (exchangeError) {
-            console.error("WordFlow: Error exchanging code:", exchangeError);
+            console.error("Baibylon: Error exchanging code:", exchangeError);
             setError(exchangeError.message);
             setProcessing(false);
             return;
           }
           
           if (data.session) {
-            console.log("WordFlow: Session created from code exchange");
-            setSession(data.session);
-            setUser(data.session.user);
+            console.log("Baibylon: Session created from code exchange");
             
             // Save to Chrome storage
             if (typeof chrome !== "undefined" && chrome.storage) {
@@ -79,7 +78,7 @@ export const OAuthCallback: React.FC = () => {
         // Fallback: Check for tokens in URL hash (implicit flow)
         const hash = window.location.hash.substring(1);
         if (hash && (hash.includes("access_token=") || hash.includes("error="))) {
-          console.log("WordFlow: OAuth callback detected in popup (implicit flow)");
+          console.log("Baibylon: OAuth callback detected in popup (implicit flow)");
           
           // Parse hash to get tokens
           const params = new URLSearchParams(hash);
@@ -88,7 +87,7 @@ export const OAuthCallback: React.FC = () => {
           const hashError = params.get("error");
           
           if (hashError) {
-            console.error("WordFlow: OAuth error:", hashError);
+            console.error("Baibylon: OAuth error:", hashError);
             setError(hashError);
             setProcessing(false);
             return;
@@ -102,16 +101,14 @@ export const OAuthCallback: React.FC = () => {
             });
             
             if (sessionError) {
-              console.error("WordFlow: Error setting session:", sessionError);
+              console.error("Baibylon: Error setting session:", sessionError);
               setError(sessionError.message);
               setProcessing(false);
               return;
             }
 
             if (data.session) {
-              console.log("WordFlow: Session restored from callback");
-              setSession(data.session);
-              setUser(data.session.user);
+              console.log("Baibylon: Session restored from callback");
               
               // Save to Chrome storage
               if (typeof chrome !== "undefined" && chrome.storage) {
@@ -130,61 +127,60 @@ export const OAuthCallback: React.FC = () => {
         } else {
           // No code or tokens, try to get existing session
           const { data } = await supabase.auth.getSession();
-          if (data.session) {
-            setSession(data.session);
-            setUser(data.session.user);
-          } else {
+          if (!data.session) {
             setProcessing(false);
           }
         }
       } catch (err) {
-        console.error("WordFlow: Error handling OAuth callback:", err);
+        console.error("Baibylon: Error handling OAuth callback:", err);
         setError(err instanceof Error ? err.message : "An error occurred");
         setProcessing(false);
       }
     };
 
     handleCallback();
-  }, [setUser, setSession]);
+  }, []);
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Authentication Error</CardTitle>
-          <CardDescription>{error}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            onClick={() => {
-              window.location.reload();
-            }}
-          >
-            Try Again
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="w-96 max-h-[600px] bg-background text-foreground overflow-hidden flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <div className="relative mx-auto w-16 h-16">
+          <div className="absolute inset-0 bg-destructive/10 rounded-2xl blur-xl"></div>
+          <div className="relative w-16 h-16 rounded-2xl bg-destructive/10 flex items-center justify-center ring-1 ring-destructive/20">
+            <AlertTriangleIcon className="w-8 h-8 text-destructive" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold">Authentication Error</h3>
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </div>
+        <Button
+          onClick={() => window.location.reload()}
+          size="default"
+          className="h-10 text-sm"
+        >
+          Try Again
+        </Button>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Completing sign in...</CardTitle>
-        <CardDescription>
-          {processing 
-            ? "Please wait while we complete your authentication."
-            : "Authentication complete! Redirecting..."}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="w-96 max-h-[600px] bg-background text-foreground overflow-hidden flex flex-col items-center justify-center p-6 text-center space-y-4">
+      <div className="relative">
         {processing && (
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-base font-semibold">Completing sign in...</h3>
+        <p className="text-sm text-muted-foreground">
+          {processing 
+            ? "Please wait..."
+            : "Redirecting..."}
+        </p>
+      </div>
+    </div>
   );
 };
 

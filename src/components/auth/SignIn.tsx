@@ -6,6 +6,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Separator } from "../ui/separator";
+import { Card, CardContent } from "../ui/card";
 
 interface SignInProps {
   onSwitchToSignUp: () => void;
@@ -38,76 +39,91 @@ export const SignIn: React.FC<SignInProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
-        <p className="text-muted-foreground mt-2">Sign in to your Baibylon account</p>
+    <div className="space-y-5">
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-semibold text-foreground">Welcome back</h2>
+        <p className="text-sm text-muted-foreground">Sign in to continue</p>
       </div>
 
-      {/* Google Sign In */}
-      <GoogleSignIn onError={handleGoogleError} />
+      {/* Google Sign In - Nested Card */}
+      <Card className="border-border/50 shadow-sm bg-card">
+        <CardContent className="p-0">
+          <GoogleSignIn onError={handleGoogleError} />
+        </CardContent>
+      </Card>
 
       {/* Divider */}
-      <div className="relative">
+      <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
           <Separator />
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
+        <div className="relative flex justify-center text-xs">
+          <span className="px-2 bg-card text-muted-foreground">or</span>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      {/* Form - Nested Card */}
+      <Card className="border-border/50 shadow-sm bg-card">
+        <CardContent className="p-4 space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {error && (
+              <Alert variant="destructive" className="py-2">
+                <AlertDescription className="text-xs">{error}</AlertDescription>
+              </Alert>
+            )}
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="Enter your email"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="your@email.com"
+                className="h-9 text-sm"
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter your password"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="h-9 text-sm"
+              />
+            </div>
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Signing in..." : "Sign in"}
-        </Button>
-      </form>
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full h-11 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
-      <div className="text-center space-y-3">
+      <div className="text-center space-y-2 pt-2">
         <Button
           variant="link"
           onClick={onSwitchToForgotPassword}
-          className="text-sm"
+          className="text-xs h-auto p-0"
         >
-          Forgot your password?
+          Forgot password?
         </Button>
 
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs text-muted-foreground">
           Don't have an account?{" "}
           <Button
             variant="link"
             onClick={onSwitchToSignUp}
-            className="text-sm p-0 h-auto"
+            className="text-xs p-0 h-auto"
           >
             Sign up
           </Button>
