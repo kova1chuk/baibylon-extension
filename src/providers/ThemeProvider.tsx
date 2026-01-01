@@ -18,7 +18,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Check localStorage first
-    const stored = localStorage.getItem("wordflow-theme") as Theme;
+    const stored = localStorage.getItem("baibylon-theme") as Theme;
     if (stored === "light" || stored === "dark") {
       return stored;
     }
@@ -38,9 +38,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     // Also apply to document for any non-shadow elements
     document.documentElement.setAttribute("data-theme", theme);
     // Store in localStorage
-    localStorage.setItem("wordflow-theme", theme);
+    localStorage.setItem("baibylon-theme", theme);
     // Dispatch custom event for theme change
-    window.dispatchEvent(new CustomEvent("wordflow-theme-change"));
+    window.dispatchEvent(new CustomEvent("baibylon-theme-change"));
   }, [theme]);
 
   const toggleTheme = () => {

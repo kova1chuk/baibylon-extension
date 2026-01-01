@@ -35,13 +35,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             "oauthCode",
             "oauthCodeTimestamp",
             "session",
+            "oauthCodeProcessing",
           ]);
 
           // If we have an OAuth code, exchange it for session
-          if (stored.oauthCode) {
+          // Use a lock to prevent multiple instances from processing the same code
+          if (stored.oauthCode && !stored.oauthCodeProcessing) {
             const codeAge = Date.now() - (stored.oauthCodeTimestamp || 0);
             if (codeAge < 5 * 60 * 1000) {
               // Code is not too old (5 minutes max)
+              // Set processing lock to prevent other instances
+              await chrome.storage.local.set({ oauthCodeProcessing: true });
+
               console.log(
                 "WordFlow: Found OAuth code, exchanging for session..."
               );
@@ -58,6 +63,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   await chrome.storage.local.remove([
                     "oauthCode",
                     "oauthCodeTimestamp",
+                    "oauthCodeProcessing",
                   ]);
                 } else if (data.session) {
                   console.log("WordFlow: Session created from code exchange");
@@ -68,9 +74,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   await chrome.storage.local.remove([
                     "oauthCode",
                     "oauthCodeTimestamp",
+                    "oauthCodeProcessing",
                   ]);
                   setLoading(false);
                   return;
+                } else {
+                  // No session returned, clear everything
+                  await chrome.storage.local.remove([
+                    "oauthCode",
+                    "oauthCodeTimestamp",
+                    "oauthCodeProcessing",
+                  ]);
                 }
               } catch (err) {
                 console.error("WordFlow: Exception during code exchange:", err);
@@ -78,6 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 await chrome.storage.local.remove([
                   "oauthCode",
                   "oauthCodeTimestamp",
+                  "oauthCodeProcessing",
                 ]);
               }
             } else {
@@ -85,7 +100,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               await chrome.storage.local.remove([
                 "oauthCode",
                 "oauthCodeTimestamp",
+                "oauthCodeProcessing",
               ]);
+            }
+          } else if (stored.oauthCodeProcessing) {
+            // Another instance is processing the code, wait a bit and check for session
+            console.log(
+              "WordFlow: OAuth code is being processed by another instance, waiting..."
+            );
+            // Wait a moment for the other instance to finish
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // Check if session was created by the other instance
+            const updated = await chrome.storage.local.get(["session"]);
+            if (updated.session) {
+              const { error } = await supabase.auth.setSession(updated.session);
+              if (!error) {
+                setSession(updated.session);
+                setUser(updated.session.user ?? null);
+                setLoading(false);
+                return;
+              }
             }
           }
 

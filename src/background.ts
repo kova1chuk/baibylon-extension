@@ -102,9 +102,11 @@ async function finishUserOAuth(url: string) {
 
       // Save the code to storage so the popup can exchange it
       // The popup's Supabase client has the code_verifier needed for PKCE
+      // Don't set processing lock here - let the first popup instance set it
       await chrome.storage.local.set({
         oauthCode: code,
         oauthCodeTimestamp: Date.now(),
+        oauthCodeProcessing: false, // Reset processing flag
       });
 
       console.log("WordFlow: OAuth code saved, popup will exchange it");
@@ -164,13 +166,29 @@ async function finishUserOAuth(url: string) {
 
     // Close the OAuth tab and show success message
     // Get the current tab to close it
-    const redirectUrl = chrome.identity.getRedirectURL();
-    const tabs = await chrome.tabs.query({
-      url: redirectUrl + "*",
-    });
-    if (tabs.length > 0) {
-      console.log("WordFlow: Closing OAuth tab");
-      await chrome.tabs.remove(tabs[0].id!);
+    try {
+      const redirectUrl = chrome.identity.getRedirectURL();
+      const tabs = await chrome.tabs.query({
+        url: redirectUrl + "*",
+      });
+      if (tabs.length > 0 && tabs[0].id) {
+        console.log("WordFlow: Closing OAuth tab");
+        try {
+          await chrome.tabs.remove(tabs[0].id);
+        } catch (tabError) {
+          // Tab might already be closed or window might not exist
+          console.log(
+            "WordFlow: Could not close tab (might already be closed):",
+            tabError
+          );
+        }
+      }
+    } catch (error) {
+      // No active browser window or tabs API error
+      console.log(
+        "WordFlow: Could not close OAuth tab (no active window):",
+        error
+      );
     }
 
     // Notify the extension popup to reload
@@ -274,24 +292,24 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   }
 });
 
-console.log("WordFlow Extension: Background service worker loaded");
+console.log("Baibylon Extension: Background service worker loaded");
 
 // Handle extension installation
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("WordFlow Extension installed");
+  console.log("Baibylon Extension installed");
 
   // Create context menu for text selection
   chrome.contextMenus.create({
-    id: "wordflow-text-selection",
-    title: "WordFlow: Process with AI",
+    id: "baibylon-text-selection",
+    title: "Baibylon: Process with AI",
     contexts: ["selection"],
     documentUrlPatterns: ["<all_urls>"],
   });
 });
 
 // Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === "wordflow-text-selection" && info.selectionText) {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === "baibylon-text-selection" && info.selectionText) {
     // Store selected text for popup access
     chrome.storage.local.set({
       selectedText: info.selectionText,
@@ -300,7 +318,13 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     });
 
     // Open the extension popup
-    chrome.action.openPopup();
+    try {
+      await chrome.action.openPopup();
+    } catch (error) {
+      // Popup might not be able to open (e.g., no active window)
+      // This is okay - user can manually open the extension
+      console.log("WordFlow: Could not open popup automatically:", error);
+    }
   }
 });
 

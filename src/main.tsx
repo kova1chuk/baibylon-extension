@@ -39,7 +39,7 @@ function initApp() {
     const shadowRoot = rootElement.attachShadow({ mode: "open" });
 
     // Get theme from localStorage
-    const theme = localStorage.getItem("wordflow-theme") || "light";
+    const theme = localStorage.getItem("baibylon-theme") || "light";
 
     // Create container inside shadow DOM
     const shadowContainer = document.createElement("div");
@@ -91,18 +91,18 @@ function initApp() {
 
     // Listen for theme changes and update shadow root
     const updateTheme = () => {
-      const newTheme = localStorage.getItem("wordflow-theme") || "light";
+      const newTheme = localStorage.getItem("baibylon-theme") || "light";
       shadowContainer.setAttribute("data-theme", newTheme);
     };
 
     window.addEventListener("storage", (e) => {
-      if (e.key === "wordflow-theme") {
+      if (e.key === "baibylon-theme") {
         updateTheme();
       }
     });
 
     // Also listen for custom theme change events
-    window.addEventListener("wordflow-theme-change", updateTheme);
+    window.addEventListener("baibylon-theme-change", updateTheme);
   } catch (error) {
     console.error("Error initializing React app:", error);
   }

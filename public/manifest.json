@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "WordFlow Extension",
+  "name": "Baibylon",
   "version": "0.0.1",
-  "description": "A Chrome extension for WordFlow",
+  "description": "A Chrome extension for Baibylon",
   "permissions": ["activeTab", "storage", "contextMenus", "identity", "tabs"],
   "host_permissions": [
     "https://*.supabase.co/*"
   ],
   "action": {
     "default_popup": "index.html",
-    "default_title": "WordFlow"
+    "default_title": "Baibylon"
   },
   "content_scripts": [
     {

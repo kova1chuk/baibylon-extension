@@ -6,7 +6,13 @@ import { UserProfile } from "./components/auth/UserProfile";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { OAuthCallback } from "./components/OAuthCallback";
 import { Button } from "./components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
 import { Alert, AlertDescription } from "./components/ui/alert";
 import { Badge } from "./components/ui/badge";
 
@@ -79,7 +85,9 @@ function App() {
           <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-foreground/20 rounded-xl mb-3">
             <span className="text-xl">✍️</span>
           </div>
-          <CardTitle className="text-xl mb-1 text-primary-foreground">WordFlow</CardTitle>
+          <CardTitle className="text-xl mb-1 text-primary-foreground">
+            Baibylon
+          </CardTitle>
           <CardDescription className="text-primary-foreground/80">
             Process selected text with AI
           </CardDescription>
@@ -155,7 +163,7 @@ function App() {
               </div>
               <CardTitle className="text-lg mb-3">No Text Selected</CardTitle>
               <CardDescription className="text-sm leading-relaxed">
-                Select text on any webpage, right-click, and choose "WordFlow:
+                Select text on any webpage, right-click, and choose "Baibylon:
                 Process with AI" from the context menu to get started.
               </CardDescription>
             </CardContent>
@@ -168,7 +176,10 @@ function App() {
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span className="font-medium">Version 0.0.1</span>
           <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="h-2 w-2 p-0 bg-green-500 border-green-500"></Badge>
+            <Badge
+              variant="outline"
+              className="h-2 w-2 p-0 bg-green-500 border-green-500"
+            ></Badge>
             <span className="font-medium">Ready</span>
           </div>
         </div>

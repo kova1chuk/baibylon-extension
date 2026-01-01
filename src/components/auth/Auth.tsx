@@ -48,7 +48,7 @@ export const Auth: React.FC = () => {
           <div className="inline-flex items-center justify-center w-12 h-12 bg-primary-foreground/20 rounded-xl mb-3">
             <span className="text-xl">✍️</span>
           </div>
-          <CardTitle className="text-xl mb-1 text-primary-foreground">WordFlow</CardTitle>
+          <CardTitle className="text-xl mb-1 text-primary-foreground">Baibylon</CardTitle>
           <CardDescription className="text-primary-foreground/80">
             Sign in to continue
           </CardDescription>

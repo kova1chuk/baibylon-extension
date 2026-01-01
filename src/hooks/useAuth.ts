@@ -167,6 +167,7 @@ export const useAuth = () => {
           "session",
           "oauthCode",
           "oauthCodeTimestamp",
+          "oauthCodeProcessing",
         ]);
       }
     } catch (err) {

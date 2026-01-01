@@ -65,7 +65,7 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
           Create your account
         </h2>
         <p className="text-muted-foreground mt-2">
-          Join WordFlow to start processing text with AI
+          Join Baibylon to start processing text with AI
         </p>
       </div>
 
