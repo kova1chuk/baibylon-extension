@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
-import { copyFileSync } from "fs";
+import { copyFileSync, existsSync } from "fs";
 
 export default defineConfig({
   plugins: [
@@ -9,14 +9,24 @@ export default defineConfig({
       // Use automatic JSX runtime to ensure React is properly initialized
       jsxRuntime: "automatic",
     }),
-    // Plugin to copy manifest.json after build
+    // Plugin to copy manifest.json and icons after build
     {
       name: "copy-manifest",
       closeBundle() {
+        // Copy manifest.json
         copyFileSync(
           resolve(__dirname, "public/manifest.json"),
           resolve(__dirname, "dist/manifest.json")
         );
+        // Copy icon files
+        const iconSizes = [16, 32, 48, 128];
+        iconSizes.forEach((size) => {
+          const iconPath = resolve(__dirname, `public/icon${size}.png`);
+          const distIconPath = resolve(__dirname, `dist/icon${size}.png`);
+          if (existsSync(iconPath)) {
+            copyFileSync(iconPath, distIconPath);
+          }
+        });
       },
     },
   ],

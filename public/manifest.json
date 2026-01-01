@@ -3,13 +3,25 @@
   "name": "Baibylon",
   "version": "0.0.1",
   "description": "A Chrome extension for Baibylon",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "permissions": ["activeTab", "storage", "contextMenus", "identity", "tabs"],
   "host_permissions": [
     "https://*.supabase.co/*"
   ],
   "action": {
     "default_popup": "index.html",
-    "default_title": "Baibylon"
+    "default_title": "Baibylon",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   },
   "content_scripts": [
     {
