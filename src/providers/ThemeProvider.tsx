@@ -17,23 +17,23 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-    // Check localStorage first
+
     const stored = localStorage.getItem("baibylon-theme") as Theme;
     if (stored === "light" || stored === "dark") {
       return stored;
     }
-    // Default to light mode
+
     return "light";
   });
 
   useEffect(() => {
-    // Apply theme to shadow root if available
+
     const root = document.getElementById("root");
     if (root?.shadowRoot) {
       const container = root.shadowRoot.getElementById("shadow-root-container");
       if (container) {
         container.setAttribute("data-theme", theme);
-        // Also add/remove .dark class for CSS compatibility
+
         if (theme === "dark") {
           container.classList.add("dark");
         } else {
@@ -41,17 +41,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         }
       }
     }
-    // Also apply to document for any non-shadow elements
+
     document.documentElement.setAttribute("data-theme", theme);
-    // Add/remove .dark class on documentElement for CSS compatibility
+
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-    // Store in localStorage
+
     localStorage.setItem("baibylon-theme", theme);
-    // Dispatch custom event for theme change
+
     window.dispatchEvent(new CustomEvent("baibylon-theme-change"));
   }, [theme]);
 

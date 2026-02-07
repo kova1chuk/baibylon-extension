@@ -18,7 +18,6 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
   const [success, setSuccess] = useState(false);
   const { resetPassword, loading, error, clearError } = useAuth();
 
-  // Clear error when component mounts or when switching views
   useEffect(() => {
     clearError();
   }, [clearError]);
@@ -64,7 +63,7 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
         </p>
       </div>
 
-      {/* Form - Nested Card */}
+      {}
       <Card className="border-border/50 shadow-sm bg-card">
         <CardContent className="p-4 space-y-4">
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -87,9 +86,9 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
               />
             </div>
 
-            <Button 
-              type="submit" 
-              disabled={loading} 
+            <Button
+              type="submit"
+              disabled={loading}
               className="w-full h-11 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
             >
               {loading ? "Sending..." : "Send reset link"}

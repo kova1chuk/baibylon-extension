@@ -12,7 +12,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    // For Chrome extensions, we need to handle OAuth redirects
+
     flowType: "pkce",
     storage: typeof chrome !== "undefined" && chrome.storage ? {
       getItem: (key: string) => {

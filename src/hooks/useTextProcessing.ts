@@ -55,10 +55,9 @@ export const useTextProcessing = () => {
     setProcessedTextState(null);
 
     try {
-      // Simulate AI processing
+
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Here you would integrate with your AI service
       const result = `Processed: ${storedText.selectedText}`;
       setProcessedTextState(result);
 
@@ -77,7 +76,7 @@ export const useTextProcessing = () => {
   }, [setErrorState]);
 
   return {
-    // State
+
     storedText,
     isProcessing,
     processedText,
@@ -85,13 +84,11 @@ export const useTextProcessing = () => {
     hasStoredText,
     processingStatus,
 
-    // Actions
     checkForStoredText,
     clearStoredText,
     processText,
     clearError,
 
-    // State setters (for internal use)
     setStoredText: setStoredTextState,
     setIsProcessing: setIsProcessingState,
     setProcessedText: setProcessedTextState,

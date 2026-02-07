@@ -38,7 +38,7 @@ export const Auth: React.FC = () => {
 
   return (
     <div className="w-96 max-h-[600px] bg-background text-foreground overflow-hidden flex flex-col">
-      {/* Enhanced Header */}
+      {}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border/50 bg-gradient-to-r from-card via-card to-card/80 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shadow-sm ring-1 ring-primary/10">
@@ -51,7 +51,7 @@ export const Auth: React.FC = () => {
         <ThemeToggle />
       </div>
 
-      {/* Auth Content */}
+      {}
       <div className="flex-1 overflow-y-auto p-5 bg-muted/20">
         <Card className="bg-card border-border/50 shadow-lg">
           <CardContent className="p-5">{renderAuthView()}</CardContent>

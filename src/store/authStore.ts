@@ -1,7 +1,6 @@
 import { atom, selector } from "recoil";
 import type { User, Session } from "@supabase/supabase-js";
 
-// Auth state atoms
 export const userState = atom<User | null>({
   key: "userState",
   default: null,
@@ -22,7 +21,6 @@ export const authErrorState = atom<string | null>({
   default: null,
 });
 
-// Computed selectors
 export const isAuthenticatedSelector = selector({
   key: "isAuthenticatedSelector",
   get: ({ get }) => {
@@ -37,7 +35,6 @@ export const userProfileSelector = selector({
     const user = get(userState);
     if (!user) return null;
 
-    // Get full name from user_metadata or email as fallback
     const fullName =
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
@@ -53,7 +50,6 @@ export const userProfileSelector = selector({
   },
 });
 
-// Auth actions
 export const authActions = {
   setUser: (user: User | null) => ({ type: "SET_USER", payload: user }),
   setSession: (session: Session | null) => ({

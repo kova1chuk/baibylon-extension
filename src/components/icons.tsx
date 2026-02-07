@@ -118,4 +118,3 @@ export const AlertTriangleIcon: React.FC<{ className?: string }> = ({ className 
     />
   </svg>
 );
-

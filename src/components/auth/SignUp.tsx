@@ -20,7 +20,6 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
   const [success, setSuccess] = useState(false);
   const { signUp, loading, error, clearError } = useAuth();
 
-  // Clear error when component mounts or when switching views
   useEffect(() => {
     clearError();
   }, [clearError]);
@@ -36,7 +35,7 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
   };
 
   const handleGoogleError = (error: string) => {
-    // Google sign-in errors are handled by the component itself
+
     console.error("Google sign-in error:", error);
   };
 
@@ -135,9 +134,9 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
               />
             </div>
 
-            <Button 
-              type="submit" 
-              disabled={loading} 
+            <Button
+              type="submit"
+              disabled={loading}
               className="w-full h-11 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
             >
               {loading ? "Creating..." : "Create account"}

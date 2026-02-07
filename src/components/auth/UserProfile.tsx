@@ -10,8 +10,6 @@ export const UserProfile: React.FC = () => {
     await signOut();
   };
 
-  // Always show user profile if authenticated, even if userProfile is null
-  // Fallback to user data if userProfile is not available
   const displayName =
     userProfile?.fullName ||
     user?.user_metadata?.full_name ||

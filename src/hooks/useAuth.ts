@@ -58,13 +58,12 @@ export const useAuth = () => {
     setErrorState(null);
 
     try {
-      // Use Chrome identity API to get the proper redirect URL
-      // This generates: https://YOUR_EXTENSION_ID.chromiumapp.org
+
       const redirectUrl =
         typeof chrome !== "undefined" &&
         chrome.identity &&
         chrome.identity.getRedirectURL
-          ? chrome.identity.getRedirectURL().replace(/\/$/, "") // Remove trailing slash
+          ? chrome.identity.getRedirectURL().replace(/\/$/, "")
           : window.location.origin + "/index.html";
 
       console.log("WordFlow: OAuth redirect URL:", redirectUrl);
@@ -81,7 +80,7 @@ export const useAuth = () => {
             access_type: "offline",
             prompt: "consent",
           },
-          // Skip browser redirect - we'll handle it manually
+
           skipBrowserRedirect: false,
         },
       });
@@ -94,11 +93,10 @@ export const useAuth = () => {
 
       console.log("WordFlow: OAuth URL generated:", data?.url);
 
-      // Open OAuth in a new tab (more reliable than popup)
       if (data?.url && typeof chrome !== "undefined" && chrome.tabs) {
         await chrome.tabs.create({ url: data.url });
       } else {
-        // Fallback for non-extension environments
+
         window.location.href = data.url;
       }
 
@@ -150,22 +148,19 @@ export const useAuth = () => {
 
   const signOut = useCallback(async () => {
     setErrorState(null);
-    // Don't set loading to true - clear immediately for better UX
-    // The onAuthStateChange handler will manage loading state
 
     try {
-      // Clear state immediately for better UX
+
       setUserState(null);
       setSessionState(null);
       setLoadingState(false);
 
-      // Set a sign-out flag in Chrome storage to prevent session restoration
       if (typeof chrome !== "undefined" && chrome.storage) {
         await chrome.storage.local.set({
           signedOut: true,
           signedOutTimestamp: Date.now(),
         });
-        // Clear all auth-related storage
+
         await chrome.storage.local.remove([
           "session",
           "oauthCode",
@@ -174,16 +169,14 @@ export const useAuth = () => {
         ]);
       }
 
-      // Sign out from Supabase (this will trigger onAuthStateChange)
       const { error } = await supabase.auth.signOut();
 
       if (error) {
         console.error("Sign out error:", error);
       }
 
-      // Clear Supabase's internal storage as well
       try {
-        // Clear all Supabase auth keys from Chrome storage
+
         if (typeof chrome !== "undefined" && chrome.storage) {
           const allKeys = await chrome.storage.local.get(null);
           const supabaseKeys = Object.keys(allKeys).filter(
@@ -204,10 +197,9 @@ export const useAuth = () => {
         err instanceof Error ? err.message : "An unexpected error occurred";
       console.error("Sign out exception:", err);
       setErrorState(errorMessage);
-      // Ensure loading is false even on error
+
       setLoadingState(false);
 
-      // Still clear Chrome storage even on error
       if (typeof chrome !== "undefined" && chrome.storage) {
         await chrome.storage.local.set({
           signedOut: true,
@@ -256,7 +248,7 @@ export const useAuth = () => {
   }, [setErrorState]);
 
   return {
-    // State
+
     user,
     session,
     loading,
@@ -264,7 +256,6 @@ export const useAuth = () => {
     isAuthenticated,
     userProfile,
 
-    // Actions
     signIn,
     signInWithGoogle,
     signUp,
@@ -272,7 +263,6 @@ export const useAuth = () => {
     resetPassword,
     clearError,
 
-    // State setters (for internal use)
     setUser: setUserState,
     setSession: setSessionState,
     setLoading: setLoadingState,

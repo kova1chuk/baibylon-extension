@@ -13,7 +13,6 @@ export interface TextProcessingState {
   error: string | null;
 }
 
-// Text processing state atoms
 export const storedTextState = atom<StoredText | null>({
   key: "storedTextState",
   default: null,
@@ -34,7 +33,6 @@ export const textErrorState = atom<string | null>({
   default: null,
 });
 
-// Computed selectors
 export const hasStoredTextSelector = selector({
   key: "hasStoredTextSelector",
   get: ({ get }) => {

@@ -21,7 +21,6 @@ export const SignIn: React.FC<SignInProps> = ({
   const [password, setPassword] = useState("");
   const { signIn, loading, error, clearError } = useAuth();
 
-  // Clear error when component mounts or when switching views
   useEffect(() => {
     clearError();
   }, [clearError]);
@@ -34,7 +33,7 @@ export const SignIn: React.FC<SignInProps> = ({
   };
 
   const handleGoogleError = (error: string) => {
-    // Google sign-in errors are handled by the component itself
+
     console.error("Google sign-in error:", error);
   };
 
@@ -45,14 +44,14 @@ export const SignIn: React.FC<SignInProps> = ({
         <p className="text-sm text-muted-foreground">Sign in to continue</p>
       </div>
 
-      {/* Google Sign In - Nested Card */}
+      {}
       <Card className="border-border/50 shadow-sm bg-card">
         <CardContent className="p-0">
           <GoogleSignIn onError={handleGoogleError} />
         </CardContent>
       </Card>
 
-      {/* Divider */}
+      {}
       <div className="relative py-2">
         <div className="absolute inset-0 flex items-center">
           <Separator />
@@ -62,7 +61,7 @@ export const SignIn: React.FC<SignInProps> = ({
         </div>
       </div>
 
-      {/* Form - Nested Card */}
+      {}
       <Card className="border-border/50 shadow-sm bg-card">
         <CardContent className="p-4 space-y-4">
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -98,9 +97,9 @@ export const SignIn: React.FC<SignInProps> = ({
               />
             </div>
 
-            <Button 
-              type="submit" 
-              disabled={loading} 
+            <Button
+              type="submit"
+              disabled={loading}
               className="w-full h-11 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign in"}

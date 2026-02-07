@@ -23,7 +23,6 @@ function App() {
     processText,
   } = useTextProcessing();
 
-  // Check if we have OAuth callback in URL (code parameter or tokens in hash)
   const urlParams = new URLSearchParams(window.location.search);
   const hasOAuthCode = urlParams.get("code") !== null;
   const hasOAuthCallback =
@@ -31,14 +30,12 @@ function App() {
     window.location.hash.includes("access_token=") ||
     window.location.hash.includes("error=");
 
-  // Check for stored text when component mounts
   useEffect(() => {
     if (isAuthenticated) {
       checkForStoredText();
     }
   }, [isAuthenticated, checkForStoredText]);
 
-  // Show loading state
   if (loading) {
     return (
       <div className="w-96 max-h-[600px] bg-background text-foreground overflow-hidden">
@@ -52,20 +49,17 @@ function App() {
     );
   }
 
-  // Show OAuth callback handler if we have tokens in URL
   if (hasOAuthCallback && !isAuthenticated) {
     return <OAuthCallback />;
   }
 
-  // Show authentication if user is not signed in
   if (!isAuthenticated) {
     return <Auth />;
   }
 
-  // Show main app if user is authenticated
   return (
     <div className="w-96 max-h-[600px] bg-background text-foreground overflow-hidden flex flex-col">
-      {/* Enhanced Header */}
+      {}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border/50 bg-gradient-to-r from-card via-card to-card/80 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shadow-sm ring-1 ring-primary/10">
@@ -81,13 +75,13 @@ function App() {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="flex-1 overflow-y-auto p-5 bg-muted/20">
         <Card className="bg-card border-border/50 shadow-lg">
           <CardContent className="p-5">
             {hasStoredText ? (
               <div className="space-y-4">
-                {/* Selected Text - Nested Card */}
+                {}
                 <Card className="border-border/50 shadow-md bg-card">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -108,7 +102,7 @@ function App() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Text Content - Nested Card */}
+                    {}
                     <Card className="bg-muted/30 border-border/50 shadow-sm">
                       <CardContent className="p-4">
                         <p className="text-sm text-muted-foreground leading-relaxed max-h-40 overflow-y-auto">
@@ -136,7 +130,7 @@ function App() {
                       </div>
                     )}
 
-                    {/* Processed Text - Nested Card */}
+                    {}
                     {processedText && (
                       <Card className="border-primary/30 bg-primary/5 shadow-sm">
                         <CardContent className="p-4">
@@ -155,7 +149,7 @@ function App() {
                       </Card>
                     )}
 
-                    {/* Error - Nested Card */}
+                    {}
                     {error && (
                       <Card className="border-destructive/30 bg-destructive/5 shadow-sm">
                         <CardContent className="p-4">
@@ -164,7 +158,7 @@ function App() {
                       </Card>
                     )}
 
-                    {/* Process Button - Nested Card */}
+                    {}
                     <Card className="border-transparent bg-transparent shadow-none p-0">
                       <CardContent className="p-0">
                         <Button
