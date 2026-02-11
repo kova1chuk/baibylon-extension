@@ -11,9 +11,9 @@ If OAuth is not redirecting after authentication, follow these debugging steps:
 5. Try OAuth again and watch for logs
 
 Look for:
-- `"WordFlow: Detected chromiumapp.org URL"`
-- `"WordFlow: OAuth redirect detected"`
-- `"WordFlow: Handling OAuth callback"`
+- `"Vocairo: Detected chromiumapp.org URL"`
+- `"Vocairo: OAuth redirect detected"`
+- `"Vocairo: Handling OAuth callback"`
 - Any error messages
 
 ## Step 2: Verify Redirect URL
@@ -46,7 +46,7 @@ Check:
 ## Step 4: Verify Background Script is Running
 
 1. Open background script console (see Step 1)
-2. You should see: `"WordFlow Extension: Background service worker loaded"`
+2. You should see: `"Vocairo Extension: Background service worker loaded"`
 3. If not, the background script isn't loading
 
 ## Step 5: Check for Common Issues
