@@ -1,6 +1,6 @@
-# Supabase Authentication Setup for WordFlow
+# Supabase Authentication Setup for Vocairo
 
-This guide will help you set up Supabase authentication for your WordFlow browser extension.
+This guide will help you set up Supabase authentication for your Vocairo browser extension.
 
 ## Prerequisites
 

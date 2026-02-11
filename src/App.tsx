@@ -66,7 +66,7 @@ function App() {
             <PenIcon className="w-4 h-4 text-primary" />
           </div>
           <h1 className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Baibylon
+            Vocairo
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ function App() {
                       <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
                         Select text on a webpage, right-click, and choose{" "}
                         <span className="font-medium text-foreground">
-                          "Baibylon: Process with AI"
+                          "Vocairo: Process with AI"
                         </span>{" "}
                         from the context menu to get started.
                       </p>

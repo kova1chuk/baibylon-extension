@@ -1,2 +1,2 @@
 
-console.log("Baibylon Extension: Content script loaded");
+console.log("Vocairo Extension: Content script loaded");

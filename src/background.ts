@@ -54,8 +54,8 @@ function parseUrlHash(url: string): Map<string, string> {
 
 async function finishUserOAuth(url: string) {
   try {
-    console.log("WordFlow: Handling OAuth callback...");
-    console.log("WordFlow: Callback URL:", url);
+    console.log("Vocairo: Handling OAuth callback...");
+    console.log("Vocairo: Callback URL:", url);
 
     if (!supabaseUrl || !supabaseAnonKey) {
 
@@ -66,9 +66,9 @@ async function finishUserOAuth(url: string) {
       if (stored.supabaseUrl && stored.supabaseAnonKey) {
         supabaseUrl = stored.supabaseUrl;
         supabaseAnonKey = stored.supabaseAnonKey;
-        console.log("WordFlow: Loaded Supabase credentials from storage");
+        console.log("Vocairo: Loaded Supabase credentials from storage");
       } else {
-        console.error("WordFlow: Supabase credentials not found in storage");
+        console.error("Vocairo: Supabase credentials not found in storage");
         throw new Error("Supabase credentials not found");
       }
     }
@@ -78,15 +78,15 @@ async function finishUserOAuth(url: string) {
     const errorParam = urlObj.searchParams.get("error");
 
     if (errorParam) {
-      console.error("WordFlow: OAuth error:", errorParam);
+      console.error("Vocairo: OAuth error:", errorParam);
       throw new Error(`OAuth error: ${errorParam}`);
     }
 
     if (code) {
       console.log(
-        "WordFlow: Found authorization code, saving for popup to exchange..."
+        "Vocairo: Found authorization code, saving for popup to exchange..."
       );
-      console.log("WordFlow: Code:", code.substring(0, 20) + "...");
+      console.log("Vocairo: Code:", code.substring(0, 20) + "...");
 
       await chrome.storage.local.set({
         oauthCode: code,
@@ -94,21 +94,21 @@ async function finishUserOAuth(url: string) {
         oauthCodeProcessing: false,
       });
 
-      console.log("WordFlow: OAuth code saved, popup will exchange it");
+      console.log("Vocairo: OAuth code saved, popup will exchange it");
     } else {
 
       const hashMap = parseUrlHash(url);
       const access_token = hashMap.get("access_token");
       const refresh_token = hashMap.get("refresh_token");
 
-      console.log("WordFlow: Extracted tokens from hash:", {
+      console.log("Vocairo: Extracted tokens from hash:", {
         hasAccessToken: !!access_token,
         hasRefreshToken: !!refresh_token,
         hashKeys: Array.from(hashMap.keys()),
       });
 
       if (!access_token || !refresh_token) {
-        console.error("WordFlow: Missing tokens in URL:", url);
+        console.error("Vocairo: Missing tokens in URL:", url);
         throw new Error("No Supabase tokens or code found in URL");
       }
 
@@ -137,10 +137,10 @@ async function finishUserOAuth(url: string) {
 
         await chrome.storage.local.set({ session });
         console.log(
-          "WordFlow: OAuth successful (implicit flow), session saved"
+          "Vocairo: OAuth successful (implicit flow), session saved"
         );
       } catch (err) {
-        console.error("WordFlow: Error processing implicit flow:", err);
+        console.error("Vocairo: Error processing implicit flow:", err);
         throw err;
       }
     }
@@ -151,13 +151,13 @@ async function finishUserOAuth(url: string) {
         url: redirectUrl + "*",
       });
       if (tabs.length > 0 && tabs[0].id) {
-        console.log("WordFlow: Closing OAuth tab");
+        console.log("Vocairo: Closing OAuth tab");
         try {
           await chrome.tabs.remove(tabs[0].id);
         } catch (tabError) {
 
           console.log(
-            "WordFlow: Could not close tab (might already be closed):",
+            "Vocairo: Could not close tab (might already be closed):",
             tabError
           );
         }
@@ -165,7 +165,7 @@ async function finishUserOAuth(url: string) {
     } catch (error) {
 
       console.log(
-        "WordFlow: Could not close OAuth tab (no active window):",
+        "Vocairo: Could not close OAuth tab (no active window):",
         error
       );
     }
@@ -177,14 +177,14 @@ async function finishUserOAuth(url: string) {
       });
     } catch (e) {
 
-      console.log("WordFlow: Could not notify popup (might not be open)");
+      console.log("Vocairo: Could not notify popup (might not be open)");
     }
 
     console.log(
-      "WordFlow: Please reopen the extension to see you're logged in"
+      "Vocairo: Please reopen the extension to see you're logged in"
     );
   } catch (error) {
-    console.error("WordFlow: OAuth error:", error);
+    console.error("Vocairo: OAuth error:", error);
 
   }
 }
@@ -213,9 +213,9 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
       baseUrl === redirectUrlNoSlash ||
       baseUrl.startsWith(redirectUrlNoSlash)
     ) {
-      console.log("WordFlow: OAuth redirect detected!");
-      console.log("WordFlow: Current URL:", currentUrl);
-      console.log("WordFlow: Expected redirect URL:", redirectUrl);
+      console.log("Vocairo: OAuth redirect detected!");
+      console.log("Vocairo: Current URL:", currentUrl);
+      console.log("Vocairo: Expected redirect URL:", redirectUrl);
 
       const code = urlObj.searchParams.get("code");
       const errorParam = urlObj.searchParams.get("error");
@@ -224,13 +224,13 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
       const hasError = currentUrl.includes("#error=") || errorParam;
 
       if (code || hasTokens || hasError) {
-        console.log("WordFlow: Processing OAuth callback...");
+        console.log("Vocairo: Processing OAuth callback...");
         finishUserOAuth(currentUrl);
         return;
       }
 
       console.log(
-        "WordFlow: Redirect URL matched but no code/tokens yet, waiting..."
+        "Vocairo: Redirect URL matched but no code/tokens yet, waiting..."
       );
     }
 
@@ -241,14 +241,14 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
 
       if (!urlObj.host.includes("chromiumapp.org")) {
         console.log(
-          "WordFlow: Detected OAuth tokens in website URL:",
+          "Vocairo: Detected OAuth tokens in website URL:",
           currentUrl
         );
 
         const hash = urlObj.hash;
         if (hash) {
           const properRedirectUrl = redirectUrl + hash;
-          console.log("WordFlow: Constructed redirect URL:", properRedirectUrl);
+          console.log("Vocairo: Constructed redirect URL:", properRedirectUrl);
           finishUserOAuth(properRedirectUrl);
           return;
         }
@@ -256,25 +256,25 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
     }
   } catch (e) {
 
-    console.log("WordFlow: Invalid URL detected, ignoring:", currentUrl);
+    console.log("Vocairo: Invalid URL detected, ignoring:", currentUrl);
   }
 });
 
-console.log("Baibylon Extension: Background service worker loaded");
+console.log("Vocairo Extension: Background service worker loaded");
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Baibylon Extension installed");
+  console.log("Vocairo Extension installed");
 
   chrome.contextMenus.create({
-    id: "baibylon-text-selection",
-    title: "Baibylon: Process with AI",
+    id: "vocairo-text-selection",
+    title: "Vocairo: Process with AI",
     contexts: ["selection"],
     documentUrlPatterns: ["<all_urls>"],
   });
 });
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId === "baibylon-text-selection" && info.selectionText) {
+  if (info.menuItemId === "vocairo-text-selection" && info.selectionText) {
 
     chrome.storage.local.set({
       selectedText: info.selectionText,
@@ -286,7 +286,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       await chrome.action.openPopup();
     } catch (error) {
 
-      console.log("WordFlow: Could not open popup automatically:", error);
+      console.log("Vocairo: Could not open popup automatically:", error);
     }
   }
 });

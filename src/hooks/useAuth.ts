@@ -66,9 +66,9 @@ export const useAuth = () => {
           ? chrome.identity.getRedirectURL().replace(/\/$/, "")
           : window.location.origin + "/index.html";
 
-      console.log("WordFlow: OAuth redirect URL:", redirectUrl);
+      console.log("Vocairo: OAuth redirect URL:", redirectUrl);
       console.log(
-        "WordFlow: Extension ID:",
+        "Vocairo: Extension ID:",
         typeof chrome !== "undefined" ? chrome.runtime.id : "N/A"
       );
 
@@ -86,12 +86,12 @@ export const useAuth = () => {
       });
 
       if (error) {
-        console.error("WordFlow: OAuth error:", error);
+        console.error("Vocairo: OAuth error:", error);
         setErrorState(error.message);
         return { error };
       }
 
-      console.log("WordFlow: OAuth URL generated:", data?.url);
+      console.log("Vocairo: OAuth URL generated:", data?.url);
 
       if (data?.url && typeof chrome !== "undefined" && chrome.tabs) {
         await chrome.tabs.create({ url: data.url });
@@ -104,7 +104,7 @@ export const useAuth = () => {
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unexpected error occurred";
-      console.error("WordFlow: OAuth exception:", err);
+      console.error("Vocairo: OAuth exception:", err);
       setErrorState(errorMessage);
       return { error: { message: errorMessage } };
     } finally {

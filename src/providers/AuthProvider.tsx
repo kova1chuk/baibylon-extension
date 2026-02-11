@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (signOutAge < 5 * 60 * 1000) {
 
               console.log(
-                "Baibylon: User recently signed out, not restoring session"
+                "Vocairo: User recently signed out, not restoring session"
               );
               setSession(null);
               setUser(null);
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               await chrome.storage.local.set({ oauthCodeProcessing: true });
 
               console.log(
-                "WordFlow: Found OAuth code, exchanging for session..."
+                "Vocairo: Found OAuth code, exchanging for session..."
               );
               try {
                 const { data, error: exchangeError } =
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
                 if (exchangeError) {
                   console.error(
-                    "WordFlow: Error exchanging code:",
+                    "Vocairo: Error exchanging code:",
                     exchangeError
                   );
 
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     "oauthCodeProcessing",
                   ]);
                 } else if (data.session) {
-                  console.log("WordFlow: Session created from code exchange");
+                  console.log("Vocairo: Session created from code exchange");
                   setSession(data.session);
                   setUser(data.session.user);
 
@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   ]);
                 }
               } catch (err) {
-                console.error("WordFlow: Exception during code exchange:", err);
+                console.error("Vocairo: Exception during code exchange:", err);
 
                 await chrome.storage.local.remove([
                   "oauthCode",
@@ -129,7 +129,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else if (stored.oauthCodeProcessing) {
 
             console.log(
-              "WordFlow: OAuth code is being processed by another instance, waiting..."
+              "Vocairo: OAuth code is being processed by another instance, waiting..."
             );
 
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -315,7 +315,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (typeof chrome !== "undefined" && chrome.runtime) {
       const messageListener = (message: any) => {
         if (message.action === "oauthComplete" && message.session) {
-          console.log("WordFlow: Received OAuth completion message");
+          console.log("Vocairo: Received OAuth completion message");
           setSession(message.session);
           setUser(message.session.user);
           if (typeof chrome !== "undefined" && chrome.storage) {

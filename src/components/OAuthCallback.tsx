@@ -31,26 +31,26 @@ export const OAuthCallback: React.FC = () => {
         }
 
         if (errorParam) {
-          console.error("Baibylon: OAuth error:", errorParam);
+          console.error("Vocairo: OAuth error:", errorParam);
           setError(errorParam);
           setProcessing(false);
           return;
         }
 
         if (oauthCode) {
-          console.log("Baibylon: OAuth code found, exchanging for session...");
+          console.log("Vocairo: OAuth code found, exchanging for session...");
 
           const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(oauthCode);
 
           if (exchangeError) {
-            console.error("Baibylon: Error exchanging code:", exchangeError);
+            console.error("Vocairo: Error exchanging code:", exchangeError);
             setError(exchangeError.message);
             setProcessing(false);
             return;
           }
 
           if (data.session) {
-            console.log("Baibylon: Session created from code exchange");
+            console.log("Vocairo: Session created from code exchange");
 
             if (typeof chrome !== "undefined" && chrome.storage) {
               chrome.storage.local.set({ session: data.session });
@@ -67,7 +67,7 @@ export const OAuthCallback: React.FC = () => {
 
         const hash = window.location.hash.substring(1);
         if (hash && (hash.includes("access_token=") || hash.includes("error="))) {
-          console.log("Baibylon: OAuth callback detected in popup (implicit flow)");
+          console.log("Vocairo: OAuth callback detected in popup (implicit flow)");
 
           const params = new URLSearchParams(hash);
           const accessToken = params.get("access_token");
@@ -75,7 +75,7 @@ export const OAuthCallback: React.FC = () => {
           const hashError = params.get("error");
 
           if (hashError) {
-            console.error("Baibylon: OAuth error:", hashError);
+            console.error("Vocairo: OAuth error:", hashError);
             setError(hashError);
             setProcessing(false);
             return;
@@ -89,14 +89,14 @@ export const OAuthCallback: React.FC = () => {
             });
 
             if (sessionError) {
-              console.error("Baibylon: Error setting session:", sessionError);
+              console.error("Vocairo: Error setting session:", sessionError);
               setError(sessionError.message);
               setProcessing(false);
               return;
             }
 
             if (data.session) {
-              console.log("Baibylon: Session restored from callback");
+              console.log("Vocairo: Session restored from callback");
 
               if (typeof chrome !== "undefined" && chrome.storage) {
                 chrome.storage.local.set({ session: data.session });
@@ -117,7 +117,7 @@ export const OAuthCallback: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error("Baibylon: Error handling OAuth callback:", err);
+        console.error("Vocairo: Error handling OAuth callback:", err);
         setError(err instanceof Error ? err.message : "An error occurred");
         setProcessing(false);
       }

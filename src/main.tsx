@@ -35,7 +35,7 @@ function initApp() {
 
     const shadowRoot = rootElement.attachShadow({ mode: "open" });
 
-    const theme = localStorage.getItem("baibylon-theme") || "light";
+    const theme = localStorage.getItem("vocairo-theme") || "light";
 
     const shadowContainer = document.createElement("div");
     shadowContainer.id = "shadow-root-container";
@@ -84,7 +84,7 @@ function initApp() {
     );
 
     const updateTheme = () => {
-      const newTheme = localStorage.getItem("baibylon-theme") || "light";
+      const newTheme = localStorage.getItem("vocairo-theme") || "light";
       shadowContainer.setAttribute("data-theme", newTheme);
 
       if (newTheme === "dark") {
@@ -95,12 +95,12 @@ function initApp() {
     };
 
     window.addEventListener("storage", (e) => {
-      if (e.key === "baibylon-theme") {
+      if (e.key === "vocairo-theme") {
         updateTheme();
       }
     });
 
-    window.addEventListener("baibylon-theme-change", updateTheme);
+    window.addEventListener("vocairo-theme-change", updateTheme);
   } catch (error) {
     console.error("Error initializing React app:", error);
   }

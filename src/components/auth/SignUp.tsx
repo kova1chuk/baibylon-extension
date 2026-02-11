@@ -65,7 +65,7 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
     <div className="space-y-5">
       <div className="text-center space-y-2">
         <h2 className="text-xl font-semibold text-foreground">Create account</h2>
-        <p className="text-sm text-muted-foreground">Get started with Baibylon</p>
+        <p className="text-sm text-muted-foreground">Get started with Vocairo</p>
       </div>
 
       {/* Google Sign In - Nested Card */}

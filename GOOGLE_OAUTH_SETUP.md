@@ -1,4 +1,4 @@
-# Google OAuth Setup for WordFlow Extension
+# Google OAuth Setup for Vocairo Extension
 
 This guide will help you set up Google OAuth authentication with Supabase for your Chrome extension.
 
@@ -44,7 +44,7 @@ That's it! You can reuse your existing Supabase project and Google OAuth credent
    - If prompted, configure the OAuth consent screen first:
      - Choose **External** (unless you have a Google Workspace)
      - Fill in the required fields:
-       - App name: `WordFlow Extension`
+       - App name: `Vocairo Extension`
        - User support email: Your email
        - Developer contact: Your email
      - Add scopes: `email`, `profile`, `openid`
@@ -54,7 +54,7 @@ That's it! You can reuse your existing Supabase project and Google OAuth credent
 5. Create OAuth Client:
 
    - Application type: **Web application**
-   - Name: `WordFlow Extension`
+   - Name: `Vocairo Extension`
    - **Authorized JavaScript origins**:
 
      ```

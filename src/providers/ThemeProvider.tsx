@@ -18,7 +18,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
 
-    const stored = localStorage.getItem("baibylon-theme") as Theme;
+    const stored = localStorage.getItem("vocairo-theme") as Theme;
     if (stored === "light" || stored === "dark") {
       return stored;
     }
@@ -50,9 +50,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       document.documentElement.classList.remove("dark");
     }
 
-    localStorage.setItem("baibylon-theme", theme);
+    localStorage.setItem("vocairo-theme", theme);
 
-    window.dispatchEvent(new CustomEvent("baibylon-theme-change"));
+    window.dispatchEvent(new CustomEvent("vocairo-theme-change"));
   }, [theme]);
 
   const toggleTheme = () => {

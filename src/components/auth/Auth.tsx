@@ -45,7 +45,7 @@ export const Auth: React.FC = () => {
             <PenIcon className="w-4 h-4 text-primary" />
           </div>
           <h1 className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            Baibylon
+            Vocairo
           </h1>
         </div>
         <ThemeToggle />
