@@ -1,4 +1,4 @@
-# WordFlow Extension
+# Vocairo Extension
 
 A browser extension that allows users to select text on any webpage and process it with AI. Built with React, TypeScript, and Vite.
 
@@ -25,7 +25,7 @@ A browser extension that allows users to select text on any webpage and process 
 
 ```bash
 git clone <your-repo-url>
-cd word-flow-extension
+cd vocairo-extension
 ```
 
 2. Install dependencies:

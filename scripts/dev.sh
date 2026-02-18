@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting WordFlow Extension development..."
+echo "🚀 Starting Vocairo Extension development..."
 
 # Build the extension
 echo "📦 Building extension..."
