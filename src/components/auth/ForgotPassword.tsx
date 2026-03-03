@@ -11,9 +11,7 @@ interface ForgotPasswordProps {
   onSwitchToSignIn: () => void;
 }
 
-export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
-  onSwitchToSignIn,
-}) => {
+export const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onSwitchToSignIn }) => {
   const [email, setEmail] = useState("");
   const [success, setSuccess] = useState(false);
   const { resetPassword, loading, error, clearError } = useAuth();
@@ -74,7 +72,9 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs">Email</Label>
+              <Label htmlFor="email" className="text-xs">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -98,11 +98,7 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
       </Card>
 
       <div className="text-center pt-2">
-        <Button
-          variant="link"
-          onClick={onSwitchToSignIn}
-          className="text-xs h-auto p-0"
-        >
+        <Button variant="link" onClick={onSwitchToSignIn} className="text-xs h-auto p-0">
           Back to sign in
         </Button>
       </div>

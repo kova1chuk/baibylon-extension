@@ -17,7 +17,6 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
-
     const stored = localStorage.getItem("vocairo-theme") as Theme;
     if (stored === "light" || stored === "dark") {
       return stored;
@@ -27,7 +26,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   });
 
   useEffect(() => {
-
     const root = document.getElementById("root");
     if (root?.shadowRoot) {
       const container = root.shadowRoot.getElementById("shadow-root-container");

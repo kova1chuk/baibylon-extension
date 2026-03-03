@@ -20,7 +20,6 @@ export const OAuthCallback: React.FC = () => {
         if (!oauthCode && typeof chrome !== "undefined" && chrome.storage) {
           const stored = await chrome.storage.local.get(["oauthCode", "oauthCodeTimestamp"]);
           if (stored.oauthCode) {
-
             const codeAge = Date.now() - (stored.oauthCodeTimestamp || 0);
             if (codeAge < 5 * 60 * 1000) {
               oauthCode = stored.oauthCode;
@@ -40,7 +39,8 @@ export const OAuthCallback: React.FC = () => {
         if (oauthCode) {
           console.log("Vocairo: OAuth code found, exchanging for session...");
 
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(oauthCode);
+          const { data, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(oauthCode);
 
           if (exchangeError) {
             console.error("Vocairo: Error exchanging code:", exchangeError);
@@ -82,7 +82,6 @@ export const OAuthCallback: React.FC = () => {
           }
 
           if (accessToken && refreshToken) {
-
             const { data, error: sessionError } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken,
@@ -110,7 +109,6 @@ export const OAuthCallback: React.FC = () => {
             }
           }
         } else {
-
           const { data } = await supabase.auth.getSession();
           if (!data.session) {
             setProcessing(false);
@@ -139,11 +137,7 @@ export const OAuthCallback: React.FC = () => {
           <h3 className="text-base font-semibold">Authentication Error</h3>
           <p className="text-sm text-muted-foreground">{error}</p>
         </div>
-        <Button
-          onClick={() => window.location.reload()}
-          size="default"
-          className="h-10 text-sm"
-        >
+        <Button onClick={() => window.location.reload()} size="default" className="h-10 text-sm">
           Try Again
         </Button>
       </div>
@@ -160,9 +154,7 @@ export const OAuthCallback: React.FC = () => {
       <div className="space-y-2">
         <h3 className="text-base font-semibold">Completing sign in...</h3>
         <p className="text-sm text-muted-foreground">
-          {processing
-            ? "Please wait..."
-            : "Redirecting..."}
+          {processing ? "Please wait..." : "Redirecting..."}
         </p>
       </div>
     </div>

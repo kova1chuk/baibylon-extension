@@ -42,15 +42,14 @@ export const useAuth = () => {
 
         return { error: null };
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "An unexpected error occurred";
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
         setErrorState(errorMessage);
         return { error: { message: errorMessage } };
       } finally {
         setLoadingState(false);
       }
     },
-    [setLoadingState, setErrorState]
+    [setLoadingState, setErrorState],
   );
 
   const signInWithGoogle = useCallback(async () => {
@@ -58,18 +57,15 @@ export const useAuth = () => {
     setErrorState(null);
 
     try {
-
       const redirectUrl =
-        typeof chrome !== "undefined" &&
-        chrome.identity &&
-        chrome.identity.getRedirectURL
+        typeof chrome !== "undefined" && chrome.identity && chrome.identity.getRedirectURL
           ? chrome.identity.getRedirectURL().replace(/\/$/, "")
           : window.location.origin + "/index.html";
 
       console.log("Vocairo: OAuth redirect URL:", redirectUrl);
       console.log(
         "Vocairo: Extension ID:",
-        typeof chrome !== "undefined" ? chrome.runtime.id : "N/A"
+        typeof chrome !== "undefined" ? chrome.runtime.id : "N/A",
       );
 
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -96,14 +92,12 @@ export const useAuth = () => {
       if (data?.url && typeof chrome !== "undefined" && chrome.tabs) {
         await chrome.tabs.create({ url: data.url });
       } else {
-
         window.location.href = data.url;
       }
 
       return { error: null, data };
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
       console.error("Vocairo: OAuth exception:", err);
       setErrorState(errorMessage);
       return { error: { message: errorMessage } };
@@ -135,22 +129,20 @@ export const useAuth = () => {
 
         return { error: null };
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "An unexpected error occurred";
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
         setErrorState(errorMessage);
         return { error: { message: errorMessage } };
       } finally {
         setLoadingState(false);
       }
     },
-    [setLoadingState, setErrorState]
+    [setLoadingState, setErrorState],
   );
 
   const signOut = useCallback(async () => {
     setErrorState(null);
 
     try {
-
       setUserState(null);
       setSessionState(null);
       setLoadingState(false);
@@ -176,14 +168,10 @@ export const useAuth = () => {
       }
 
       try {
-
         if (typeof chrome !== "undefined" && chrome.storage) {
           const allKeys = await chrome.storage.local.get(null);
           const supabaseKeys = Object.keys(allKeys).filter(
-            (key) =>
-              key.startsWith("sb-") ||
-              key.includes("supabase") ||
-              key.includes("auth")
+            (key) => key.startsWith("sb-") || key.includes("supabase") || key.includes("auth"),
           );
           if (supabaseKeys.length > 0) {
             await chrome.storage.local.remove(supabaseKeys);
@@ -193,8 +181,7 @@ export const useAuth = () => {
         console.error("Error clearing Supabase storage:", storageErr);
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
       console.error("Sign out exception:", err);
       setErrorState(errorMessage);
 
@@ -232,15 +219,14 @@ export const useAuth = () => {
 
         return { error: null };
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "An unexpected error occurred";
+        const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
         setErrorState(errorMessage);
         return { error: { message: errorMessage } };
       } finally {
         setLoadingState(false);
       }
     },
-    [setLoadingState, setErrorState]
+    [setLoadingState, setErrorState],
   );
 
   const clearError = useCallback(() => {
@@ -248,7 +234,6 @@ export const useAuth = () => {
   }, [setErrorState]);
 
   return {
-
     user,
     session,
     loading,

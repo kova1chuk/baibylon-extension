@@ -35,7 +35,6 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
   };
 
   const handleGoogleError = (error: string) => {
-
     console.error("Google sign-in error:", error);
   };
 
@@ -96,7 +95,9 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="fullName" className="text-xs">Full name</Label>
+              <Label htmlFor="fullName" className="text-xs">
+                Full name
+              </Label>
               <Input
                 id="fullName"
                 type="text"
@@ -108,7 +109,9 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs">Email</Label>
+              <Label htmlFor="email" className="text-xs">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -121,7 +124,9 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs">Password</Label>
+              <Label htmlFor="password" className="text-xs">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -148,11 +153,7 @@ export const SignUp: React.FC<SignUpProps> = ({ onSwitchToSignIn }) => {
       <div className="text-center pt-2">
         <div className="text-xs text-muted-foreground">
           Already have an account?{" "}
-          <Button
-            variant="link"
-            onClick={onSwitchToSignIn}
-            className="text-xs p-0 h-auto"
-          >
+          <Button variant="link" onClick={onSwitchToSignIn} className="text-xs p-0 h-auto">
             Sign in
           </Button>
         </div>

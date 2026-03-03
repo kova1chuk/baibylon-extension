@@ -13,7 +13,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const setLoading = useSetRecoilState(loadingState);
 
   useEffect(() => {
-
     if (typeof chrome !== "undefined" && chrome.runtime) {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -28,7 +27,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const getInitialSession = async () => {
       try {
-
         if (typeof chrome !== "undefined" && chrome.storage) {
           const stored = await chrome.storage.local.get([
             "oauthCode",
@@ -42,46 +40,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (stored.signedOut && stored.signedOutTimestamp) {
             const signOutAge = Date.now() - stored.signedOutTimestamp;
             if (signOutAge < 5 * 60 * 1000) {
-
-              console.log(
-                "Vocairo: User recently signed out, not restoring session"
-              );
+              console.log("Vocairo: User recently signed out, not restoring session");
               setSession(null);
               setUser(null);
               setLoading(false);
 
-              await chrome.storage.local.remove([
-                "signedOut",
-                "signedOutTimestamp",
-              ]);
+              await chrome.storage.local.remove(["signedOut", "signedOutTimestamp"]);
               return;
             } else {
-
-              await chrome.storage.local.remove([
-                "signedOut",
-                "signedOutTimestamp",
-              ]);
+              await chrome.storage.local.remove(["signedOut", "signedOutTimestamp"]);
             }
           }
 
           if (stored.oauthCode && !stored.oauthCodeProcessing) {
             const codeAge = Date.now() - (stored.oauthCodeTimestamp || 0);
             if (codeAge < 5 * 60 * 1000) {
-
               await chrome.storage.local.set({ oauthCodeProcessing: true });
 
-              console.log(
-                "Vocairo: Found OAuth code, exchanging for session..."
-              );
+              console.log("Vocairo: Found OAuth code, exchanging for session...");
               try {
-                const { data, error: exchangeError } =
-                  await supabase.auth.exchangeCodeForSession(stored.oauthCode);
+                const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(
+                  stored.oauthCode,
+                );
 
                 if (exchangeError) {
-                  console.error(
-                    "Vocairo: Error exchanging code:",
-                    exchangeError
-                  );
+                  console.error("Vocairo: Error exchanging code:", exchangeError);
 
                   await chrome.storage.local.remove([
                     "oauthCode",
@@ -102,7 +85,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   setLoading(false);
                   return;
                 } else {
-
                   await chrome.storage.local.remove([
                     "oauthCode",
                     "oauthCodeTimestamp",
@@ -119,7 +101,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 ]);
               }
             } else {
-
               await chrome.storage.local.remove([
                 "oauthCode",
                 "oauthCodeTimestamp",
@@ -127,10 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               ]);
             }
           } else if (stored.oauthCodeProcessing) {
-
-            console.log(
-              "Vocairo: OAuth code is being processed by another instance, waiting..."
-            );
+            console.log("Vocairo: OAuth code is being processed by another instance, waiting...");
 
             await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -147,18 +125,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
 
           if (stored.session) {
-
             const expiresAt = stored.session.expires_at;
             if (expiresAt && expiresAt * 1000 < Date.now()) {
-
               await chrome.storage.local.remove(["session"]);
             } else {
-
-              const { data, error } = await supabase.auth.setSession(
-                stored.session
-              );
+              const { data, error } = await supabase.auth.setSession(stored.session);
               if (!error && data.session) {
-
                 setSession(data.session);
                 setUser(data.session.user ?? null);
 
@@ -166,7 +138,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setLoading(false);
                 return;
               } else {
-
                 await chrome.storage.local.remove(["session"]);
               }
             }
@@ -178,14 +149,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } = await supabase.auth.getSession();
 
         if (typeof chrome !== "undefined" && chrome.storage) {
-          const signOutCheck = await chrome.storage.local.get([
-            "signedOut",
-            "signedOutTimestamp",
-          ]);
+          const signOutCheck = await chrome.storage.local.get(["signedOut", "signedOutTimestamp"]);
           if (signOutCheck.signedOut && signOutCheck.signedOutTimestamp) {
             const signOutAge = Date.now() - signOutCheck.signedOutTimestamp;
             if (signOutAge < 5 * 60 * 1000) {
-
               setSession(null);
               setUser(null);
               setLoading(false);
@@ -200,21 +167,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (typeof chrome !== "undefined" && chrome.storage) {
             await chrome.storage.local.set({ session });
-            await chrome.storage.local.remove([
-              "signedOut",
-              "signedOutTimestamp",
-            ]);
+            await chrome.storage.local.remove(["signedOut", "signedOutTimestamp"]);
           }
         } else {
-
           setSession(null);
           setUser(null);
           if (typeof chrome !== "undefined" && chrome.storage) {
-            await chrome.storage.local.remove([
-              "session",
-              "signedOut",
-              "signedOutTimestamp",
-            ]);
+            await chrome.storage.local.remove(["session", "signedOut", "signedOutTimestamp"]);
           }
         }
       } catch (error) {
@@ -254,9 +213,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               (key) =>
                 key.startsWith("sb-") ||
                 key.includes("supabase") ||
-                (key.includes("auth") &&
-                  key !== "signedOut" &&
-                  key !== "signedOutTimestamp")
+                (key.includes("auth") && key !== "signedOut" && key !== "signedOutTimestamp"),
             );
             if (supabaseKeys.length > 0) {
               await chrome.storage.local.remove(supabaseKeys);
@@ -276,7 +233,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (session?.user) {
         try {
-
           const { data: profile, error: profileError } = await supabase
             .from("user_profiles")
             .select("full_name, email")
@@ -284,14 +240,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             .single();
 
           if (!profileError && profile) {
-
             console.log("User profile loaded from database:", profile);
           }
         } catch (error) {
-
-          console.log(
-            "Could not fetch user profile from database, using user_metadata"
-          );
+          console.log("Could not fetch user profile from database, using user_metadata");
         }
       }
 

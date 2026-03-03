@@ -13,7 +13,6 @@ async function handleAuthCallback() {
     if (error) {
       console.error("Error getting session:", error);
     }
-
   } catch (err) {
     console.error("Error handling auth callback:", err);
   }
@@ -27,7 +26,6 @@ function initApp() {
   }
 
   try {
-
     const urlParams = new URLSearchParams(window.location.hash.substring(1));
     if (urlParams.get("access_token") || urlParams.get("error")) {
       handleAuthCallback();
@@ -49,9 +47,7 @@ function initApp() {
     shadowRoot.appendChild(shadowContainer);
 
     const styleTags = Array.from(document.querySelectorAll("style"));
-    const linkTags = Array.from(
-      document.querySelectorAll('link[rel="stylesheet"]')
-    );
+    const linkTags = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
 
     styleTags.forEach((styleTag) => {
       if (styleTag.textContent) {
@@ -80,7 +76,7 @@ function initApp() {
             </AuthProvider>
           </ThemeProvider>
         </RecoilRoot>
-      </StrictMode>
+      </StrictMode>,
     );
 
     const updateTheme = () => {
@@ -109,6 +105,5 @@ function initApp() {
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initApp);
 } else {
-
   initApp();
 }

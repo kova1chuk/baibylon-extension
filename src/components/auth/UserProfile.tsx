@@ -11,10 +11,7 @@ export const UserProfile: React.FC = () => {
   };
 
   const displayName =
-    userProfile?.fullName ||
-    user?.user_metadata?.full_name ||
-    user?.email?.split("@")[0] ||
-    "User";
+    userProfile?.fullName || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   const initials = displayName.charAt(0).toUpperCase();
 
   if (!user && !userProfile) {
@@ -29,9 +26,7 @@ export const UserProfile: React.FC = () => {
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0 hidden sm:block">
-        <p className="text-xs font-medium text-foreground truncate">
-          {displayName}
-        </p>
+        <p className="text-xs font-medium text-foreground truncate">{displayName}</p>
       </div>
       <Button
         variant="ghost"
@@ -40,12 +35,7 @@ export const UserProfile: React.FC = () => {
         className="h-7 w-7"
         title="Sign out"
       >
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

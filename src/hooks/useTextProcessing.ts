@@ -55,7 +55,6 @@ export const useTextProcessing = () => {
     setProcessedTextState(null);
 
     try {
-
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const result = `Processed: ${storedText.selectedText}`;
@@ -63,8 +62,7 @@ export const useTextProcessing = () => {
 
       console.log("Processing text with AI:", storedText.selectedText);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
       setErrorState(errorMessage);
     } finally {
       setIsProcessingState(false);
@@ -76,7 +74,6 @@ export const useTextProcessing = () => {
   }, [setErrorState]);
 
   return {
-
     storedText,
     isProcessing,
     processedText,

@@ -13,10 +13,7 @@ interface SignInProps {
   onSwitchToForgotPassword: () => void;
 }
 
-export const SignIn: React.FC<SignInProps> = ({
-  onSwitchToSignUp,
-  onSwitchToForgotPassword,
-}) => {
+export const SignIn: React.FC<SignInProps> = ({ onSwitchToSignUp, onSwitchToForgotPassword }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { signIn, loading, error, clearError } = useAuth();
@@ -33,7 +30,6 @@ export const SignIn: React.FC<SignInProps> = ({
   };
 
   const handleGoogleError = (error: string) => {
-
     console.error("Google sign-in error:", error);
   };
 
@@ -72,7 +68,9 @@ export const SignIn: React.FC<SignInProps> = ({
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs">Email</Label>
+              <Label htmlFor="email" className="text-xs">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -85,7 +83,9 @@ export const SignIn: React.FC<SignInProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs">Password</Label>
+              <Label htmlFor="password" className="text-xs">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -109,21 +109,13 @@ export const SignIn: React.FC<SignInProps> = ({
       </Card>
 
       <div className="text-center space-y-2 pt-2">
-        <Button
-          variant="link"
-          onClick={onSwitchToForgotPassword}
-          className="text-xs h-auto p-0"
-        >
+        <Button variant="link" onClick={onSwitchToForgotPassword} className="text-xs h-auto p-0">
           Forgot password?
         </Button>
 
         <div className="text-xs text-muted-foreground">
           Don't have an account?{" "}
-          <Button
-            variant="link"
-            onClick={onSwitchToSignUp}
-            className="text-xs p-0 h-auto"
-          >
+          <Button variant="link" onClick={onSwitchToSignUp} className="text-xs p-0 h-auto">
             Sign up
           </Button>
         </div>

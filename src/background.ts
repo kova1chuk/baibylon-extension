@@ -1,4 +1,3 @@
-
 let supabaseUrl: string | null = null;
 let supabaseAnonKey: string | null = null;
 
@@ -9,7 +8,6 @@ async function getSupabaseClient() {
   const { createClient } = await import("@supabase/supabase-js");
   return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-
       storage: {
         getItem: (key: string) => {
           return new Promise((resolve) => {
@@ -33,7 +31,6 @@ async function getSupabaseClient() {
       detectSessionInUrl: false,
     },
     global: {
-
       fetch: fetch,
     },
   });
@@ -47,7 +44,7 @@ function parseUrlHash(url: string): Map<string, string> {
       .map((part) => {
         const [name, value] = part.split("=");
         return [name, decodeURIComponent(value)];
-      })
+      }),
   );
   return hashMap;
 }
@@ -58,11 +55,7 @@ async function finishUserOAuth(url: string) {
     console.log("Vocairo: Callback URL:", url);
 
     if (!supabaseUrl || !supabaseAnonKey) {
-
-      const stored = await chrome.storage.local.get([
-        "supabaseUrl",
-        "supabaseAnonKey",
-      ]);
+      const stored = await chrome.storage.local.get(["supabaseUrl", "supabaseAnonKey"]);
       if (stored.supabaseUrl && stored.supabaseAnonKey) {
         supabaseUrl = stored.supabaseUrl;
         supabaseAnonKey = stored.supabaseAnonKey;
@@ -83,9 +76,7 @@ async function finishUserOAuth(url: string) {
     }
 
     if (code) {
-      console.log(
-        "Vocairo: Found authorization code, saving for popup to exchange..."
-      );
+      console.log("Vocairo: Found authorization code, saving for popup to exchange...");
       console.log("Vocairo: Code:", code.substring(0, 20) + "...");
 
       await chrome.storage.local.set({
@@ -96,7 +87,6 @@ async function finishUserOAuth(url: string) {
 
       console.log("Vocairo: OAuth code saved, popup will exchange it");
     } else {
-
       const hashMap = parseUrlHash(url);
       const access_token = hashMap.get("access_token");
       const refresh_token = hashMap.get("refresh_token");
@@ -136,9 +126,7 @@ async function finishUserOAuth(url: string) {
         };
 
         await chrome.storage.local.set({ session });
-        console.log(
-          "Vocairo: OAuth successful (implicit flow), session saved"
-        );
+        console.log("Vocairo: OAuth successful (implicit flow), session saved");
       } catch (err) {
         console.error("Vocairo: Error processing implicit flow:", err);
         throw err;
@@ -155,19 +143,11 @@ async function finishUserOAuth(url: string) {
         try {
           await chrome.tabs.remove(tabs[0].id);
         } catch (tabError) {
-
-          console.log(
-            "Vocairo: Could not close tab (might already be closed):",
-            tabError
-          );
+          console.log("Vocairo: Could not close tab (might already be closed):", tabError);
         }
       }
     } catch (error) {
-
-      console.log(
-        "Vocairo: Could not close OAuth tab (no active window):",
-        error
-      );
+      console.log("Vocairo: Could not close OAuth tab (no active window):", error);
     }
 
     try {
@@ -176,21 +156,16 @@ async function finishUserOAuth(url: string) {
         session: data.session,
       });
     } catch (e) {
-
       console.log("Vocairo: Could not notify popup (might not be open)");
     }
 
-    console.log(
-      "Vocairo: Please reopen the extension to see you're logged in"
-    );
+    console.log("Vocairo: Please reopen the extension to see you're logged in");
   } catch (error) {
     console.error("Vocairo: OAuth error:", error);
-
   }
 }
 
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
-
   if (changeInfo.status !== "complete" && changeInfo.url === undefined) {
     return;
   }
@@ -206,13 +181,9 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
 
   try {
     const urlObj = new URL(currentUrl);
-    const baseUrl =
-      `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`.replace(/\/$/, "");
+    const baseUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`.replace(/\/$/, "");
 
-    if (
-      baseUrl === redirectUrlNoSlash ||
-      baseUrl.startsWith(redirectUrlNoSlash)
-    ) {
+    if (baseUrl === redirectUrlNoSlash || baseUrl.startsWith(redirectUrlNoSlash)) {
       console.log("Vocairo: OAuth redirect detected!");
       console.log("Vocairo: Current URL:", currentUrl);
       console.log("Vocairo: Expected redirect URL:", redirectUrl);
@@ -229,21 +200,12 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
         return;
       }
 
-      console.log(
-        "Vocairo: Redirect URL matched but no code/tokens yet, waiting..."
-      );
+      console.log("Vocairo: Redirect URL matched but no code/tokens yet, waiting...");
     }
 
-    if (
-      currentUrl.includes("#access_token=") ||
-      currentUrl.includes("#error=")
-    ) {
-
+    if (currentUrl.includes("#access_token=") || currentUrl.includes("#error=")) {
       if (!urlObj.host.includes("chromiumapp.org")) {
-        console.log(
-          "Vocairo: Detected OAuth tokens in website URL:",
-          currentUrl
-        );
+        console.log("Vocairo: Detected OAuth tokens in website URL:", currentUrl);
 
         const hash = urlObj.hash;
         if (hash) {
@@ -255,7 +217,6 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
       }
     }
   } catch (e) {
-
     console.log("Vocairo: Invalid URL detected, ignoring:", currentUrl);
   }
 });
@@ -275,7 +236,6 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "vocairo-text-selection" && info.selectionText) {
-
     chrome.storage.local.set({
       selectedText: info.selectionText,
       sourceUrl: tab?.url || "",
@@ -285,7 +245,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     try {
       await chrome.action.openPopup();
     } catch (error) {
-
       console.log("Vocairo: Could not open popup automatically:", error);
     }
   }
@@ -293,22 +252,16 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request.action === "getStoredText") {
-    chrome.storage.local.get(
-      ["selectedText", "sourceUrl", "timestamp"],
-      (result) => {
-        sendResponse(result);
-      }
-    );
+    chrome.storage.local.get(["selectedText", "sourceUrl", "timestamp"], (result) => {
+      sendResponse(result);
+    });
     return true;
   }
 
   if (request.action === "clearStoredText") {
-    chrome.storage.local.remove(
-      ["selectedText", "sourceUrl", "timestamp"],
-      () => {
-        sendResponse({ success: true });
-      }
-    );
+    chrome.storage.local.remove(["selectedText", "sourceUrl", "timestamp"], () => {
+      sendResponse({ success: true });
+    });
     return true;
   }
 

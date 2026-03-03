@@ -14,21 +14,24 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
 
     flowType: "pkce",
-    storage: typeof chrome !== "undefined" && chrome.storage ? {
-      getItem: (key: string) => {
-        return new Promise((resolve) => {
-          chrome.storage.local.get([key], (result) => {
-            resolve(result[key] || null);
-          });
-        });
-      },
-      setItem: (key: string, value: string) => {
-        chrome.storage.local.set({ [key]: value });
-      },
-      removeItem: (key: string) => {
-        chrome.storage.local.remove([key]);
-      },
-    } : undefined,
+    storage:
+      typeof chrome !== "undefined" && chrome.storage
+        ? {
+            getItem: (key: string) => {
+              return new Promise((resolve) => {
+                chrome.storage.local.get([key], (result) => {
+                  resolve(result[key] || null);
+                });
+              });
+            },
+            setItem: (key: string, value: string) => {
+              chrome.storage.local.set({ [key]: value });
+            },
+            removeItem: (key: string) => {
+              chrome.storage.local.remove([key]);
+            },
+          }
+        : undefined,
   },
 });
 

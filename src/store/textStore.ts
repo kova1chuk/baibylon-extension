@@ -54,10 +54,7 @@ export const textProcessingStatusSelector = selector({
       isProcessing,
       processedText,
       error,
-      canProcess:
-        storedText !== null &&
-        storedText.selectedText !== undefined &&
-        !isProcessing,
+      canProcess: storedText !== null && storedText.selectedText !== undefined && !isProcessing,
     };
   },
 });

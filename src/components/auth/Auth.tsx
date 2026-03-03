@@ -23,9 +23,7 @@ export const Auth: React.FC = () => {
       case "signup":
         return <SignUp onSwitchToSignIn={() => setCurrentView("signin")} />;
       case "forgot-password":
-        return (
-          <ForgotPassword onSwitchToSignIn={() => setCurrentView("signin")} />
-        );
+        return <ForgotPassword onSwitchToSignIn={() => setCurrentView("signin")} />;
       default:
         return (
           <SignIn
