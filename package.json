@@ -8,14 +8,15 @@
     "build": "tsc -b && vite build",
     "build:extension": "vite build",
     "typecheck": "tsgo --noEmit",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
+    "lint": "oxlint -c oxlint.json",
+    "lint:fix": "oxlint -c oxlint.json --fix",
     "format": "oxfmt --write src/",
     "format:check": "oxfmt --check src/",
     "check": "run-p typecheck lint format:check",
     "preview": "vite preview",
     "watch:extension": "vite build --watch",
-    "setup:extension": "./scripts/dev.sh"
+    "setup:extension": "./scripts/dev.sh",
+    "prepare": "husky"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
@@ -39,6 +40,8 @@
     "@typescript/native-preview": "7.0.0-dev.20260302.1",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.1",
     "npm-run-all2": "^8.0.4",
     "oxfmt": "^0.35.0",
     "oxlint": "^1.50.0",
@@ -46,5 +49,11 @@
     "tailwindcss": "^4.1.11",
     "typescript": "~5.8.3",
     "vite": "^7.1.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,mts}": [
+      "oxlint -c oxlint.json --fix",
+      "oxfmt --write"
+    ]
   }
 }

@@ -1,11 +1,11 @@
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useCallback } from "react";
 import {
-  storedTextState,
+  hasStoredTextSelector,
   isProcessingState,
   processedTextState,
+  storedTextState,
   textErrorState,
-  hasStoredTextSelector,
   textProcessingStatusSelector,
 } from "../store/textStore";
 

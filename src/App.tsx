@@ -8,7 +8,7 @@ import { OAuthCallback } from "./components/OAuthCallback";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Alert, AlertDescription } from "./components/ui/alert";
-import { PenIcon, DocumentIcon, SparklesIcon, XIcon } from "./components/icons";
+import { DocumentIcon, PenIcon, SparklesIcon, XIcon } from "./components/icons";
 
 function App() {
   const { loading, isAuthenticated } = useAuth();

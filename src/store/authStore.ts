@@ -1,5 +1,5 @@
 import { atom, selector } from "recoil";
-import type { User, Session } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 
 export const userState = atom<User | null>({
   key: "userState",

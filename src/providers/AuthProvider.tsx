@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useSetRecoilState } from "recoil";
 import { supabase } from "../lib/supabase";
-import { userState, sessionState, loadingState } from "../store/authStore";
+import { loadingState, sessionState, userState } from "../store/authStore";
 
 interface AuthProviderProps {
   children: React.ReactNode;

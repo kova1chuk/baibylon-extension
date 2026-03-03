@@ -2,12 +2,12 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import {
-  userState,
-  sessionState,
-  loadingState,
   authErrorState,
   isAuthenticatedSelector,
+  loadingState,
+  sessionState,
   userProfileSelector,
+  userState,
 } from "../store/authStore";
 
 export const useAuth = () => {
