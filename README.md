@@ -1,117 +1,61 @@
 # Vocairo Extension
 
-A browser extension that allows users to select text on any webpage and process it with AI. Built with React, TypeScript, and Vite.
+Chrome extension prototype built with React 18, TypeScript, Vite, Tailwind CSS
+4, Recoil, and Supabase Auth.
 
-## Features
-
-- **Text Selection**: Select text on any webpage and process it with AI
-- **User Authentication**: Secure authentication powered by Supabase
-- **Google OAuth**: Sign in with Google accounts for convenience
-- **Modern State Management**: Built with Recoil for efficient state management
-- **Modern UI**: Beautiful, responsive interface built with Tailwind CSS
-- **Chrome Extension**: Works seamlessly as a browser extension
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- pnpm (install with `npm install -g pnpm`)
-- A Supabase account and project
-
-### Installation
-
-1. Clone the repository:
+## Local Development
 
 ```bash
-git clone <your-repo-url>
-cd vocairo-extension
-```
-
-2. Install dependencies:
-
-```bash
+cd /Users/oleks/Work/Vocairo/vocairo-extension
 pnpm install
+pnpm dev
 ```
 
-3. Set up Supabase authentication (see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for detailed instructions)
-
-4. Create a `.env` file with your Supabase credentials:
+Build the loadable Chrome extension:
 
 ```bash
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+pnpm build:extension
 ```
 
-5. Start the development server:
+Then open `chrome://extensions`, enable Developer mode, choose "Load unpacked",
+and select `dist/`.
+
+## Environment
+
+```env
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+```
+
+For Google OAuth, add the Chrome extension redirect URL to both Google Cloud and
+Supabase Auth:
+
+```text
+https://<extension-id>.chromiumapp.org
+```
+
+The extension ID is visible in `chrome://extensions` after loading `dist/`.
+
+## Commands
 
 ```bash
-pnpm run dev
+pnpm build
+pnpm build:extension
+pnpm watch:extension
+pnpm typecheck
+pnpm lint
+pnpm format:check
 ```
 
-6. Build the extension:
+## Structure
 
-```bash
-pnpm run build:extension
+```text
+public/manifest.json
+src/App.tsx
+src/background.ts
+src/content.ts
+src/main.tsx
+src/global.css
 ```
 
-## Development
-
-- `pnpm run dev` - Start development server
-- `pnpm run build` - Build for production
-- `pnpm run build:extension` - Build the Chrome extension
-- `pnpm run watch:extension` - Watch mode for extension development
-- `pnpm run lint` - Run ESLint
-
-## Project Structure
-
-```
-src/
-├── components/
-│   └── auth/           # Authentication components
-│       ├── Auth.tsx    # Main auth component
-│       ├── SignIn.tsx  # Sign in form
-│       ├── SignUp.tsx  # Sign up form
-│       ├── ForgotPassword.tsx # Password reset
-│       ├── GoogleSignIn.tsx   # Google OAuth button
-│       └── UserProfile.tsx    # User profile display
-├── hooks/               # Custom hooks
-│   ├── useAuth.ts      # Authentication hook
-│   └── useTextProcessing.ts # Text processing hook
-├── providers/           # Context providers
-│   └── AuthProvider.tsx # Recoil-based auth provider
-├── store/               # Recoil state stores
-│   ├── authStore.ts    # Authentication state
-│   └── textStore.ts    # Text processing state
-├── lib/                 # External library configurations
-│   └── supabase.ts     # Supabase client configuration
-├── App.tsx             # Main application component
-└── main.tsx            # Application entry point
-```
-
-## Authentication
-
-The extension uses Supabase for authentication, providing:
-
-- User registration and login
-- Google OAuth sign-in
-- Password reset functionality
-- Secure session management
-- User profile management
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For help with Supabase setup, see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md).
-For general support, please open an issue on GitHub.
+Generated output in `dist/` is disposable.
