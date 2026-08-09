@@ -1,41 +1,6 @@
 let supabaseUrl: string | null = null;
 let supabaseAnonKey: string | null = null;
 
-async function getSupabaseClient() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase credentials not initialized");
-  }
-  const { createClient } = await import("@supabase/supabase-js");
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      storage: {
-        getItem: (key: string) => {
-          return new Promise((resolve) => {
-            chrome.storage.local.get([key], (result) => {
-              resolve(result[key] || null);
-            });
-          });
-        },
-        setItem: (key: string, value: string) => {
-          chrome.storage.local.set({ [key]: value });
-        },
-        removeItem: (key: string) => {
-          chrome.storage.local.remove([key]);
-        },
-      },
-
-      flowType: "pkce",
-
-      autoRefreshToken: false,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-    global: {
-      fetch: fetch,
-    },
-  });
-}
-
 function parseUrlHash(url: string): Map<string, string> {
   const hashParts = new URL(url).hash.slice(1).split("&");
   const hashMap = new Map(
@@ -155,7 +120,7 @@ async function finishUserOAuth(url: string) {
         action: "oauthComplete",
         session: data.session,
       });
-    } catch (e) {
+    } catch {
       console.log("Vocairo: Could not notify popup (might not be open)");
     }
 
@@ -216,7 +181,7 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
         }
       }
     }
-  } catch (e) {
+  } catch {
     console.log("Vocairo: Invalid URL detected, ignoring:", currentUrl);
   }
 });
