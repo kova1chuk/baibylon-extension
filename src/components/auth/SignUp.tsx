@@ -6,7 +6,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Separator } from "../ui/separator";
-import { CheckCircleIcon, MailIcon } from "../icons";
+import { CheckCircleIcon } from "../icons";
 import { Card, CardContent } from "../ui/card";
 
 interface SignUpProps {

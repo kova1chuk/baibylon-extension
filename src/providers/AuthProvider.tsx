@@ -242,7 +242,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (!profileError && profile) {
             console.log("User profile loaded from database:", profile);
           }
-        } catch (error) {
+        } catch {
           console.log("Could not fetch user profile from database, using user_metadata");
         }
       }

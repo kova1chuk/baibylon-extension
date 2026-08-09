@@ -7,7 +7,6 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { OAuthCallback } from "./components/OAuthCallback";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import { Alert, AlertDescription } from "./components/ui/alert";
 import { DocumentIcon, PenIcon, SparklesIcon, XIcon } from "./components/icons";
 
 function App() {

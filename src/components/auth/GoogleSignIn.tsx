@@ -15,7 +15,7 @@ export const GoogleSignIn: React.FC<GoogleSignInProps> = ({ onError }) => {
       if (error && onError) {
         onError(error.message);
       }
-    } catch (error) {
+    } catch {
       if (onError) {
         onError("An unexpected error occurred");
       }
