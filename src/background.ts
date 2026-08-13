@@ -115,13 +115,13 @@ async function finishUserOAuth(url: string) {
       console.log("Vocairo: Could not close OAuth tab (no active window):", error);
     }
 
-    try {
-      await chrome.runtime.sendMessage({
-        action: "oauthComplete",
-        session: data.session,
-      });
-    } catch {
-      console.log("Vocairo: Could not notify popup (might not be open)");
+    const { session } = await chrome.storage.local.get("session");
+    if (session) {
+      try {
+        await chrome.runtime.sendMessage({ action: "oauthComplete", session });
+      } catch {
+        console.log("Vocairo: Could not notify popup (might not be open)");
+      }
     }
 
     console.log("Vocairo: Please reopen the extension to see you're logged in");

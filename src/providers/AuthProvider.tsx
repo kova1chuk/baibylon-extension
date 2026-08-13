@@ -231,22 +231,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from("user_profiles")
-            .select("full_name, email")
-            .eq("id", session.user.id)
-            .single();
-
-          if (!profileError && profile) {
-            console.log("User profile loaded from database:", profile);
-          }
-        } catch {
-          console.log("Could not fetch user profile from database, using user_metadata");
-        }
-      }
-
       if (session && typeof chrome !== "undefined" && chrome.storage) {
         chrome.storage.local.set({ session });
       }
