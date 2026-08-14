@@ -13,12 +13,20 @@ const MAX_PASSAGE_LENGTH = 20_000;
 
 export class ApiError extends Error {
   constructor(
-    readonly kind: "network" | "unauthorized" | "http",
+    readonly kind: "network" | "notSignedIn" | "unauthorized" | "http",
     readonly status?: number,
     message?: string,
   ) {
     super(message ?? kind);
   }
+}
+
+function extractMessage(payload: unknown): string | undefined {
+  return payload &&
+    typeof payload === "object" &&
+    typeof (payload as { message?: unknown }).message === "string"
+    ? (payload as { message: string }).message
+    : undefined;
 }
 
 export function unwrap<T>(payload: unknown): T {
@@ -78,7 +86,7 @@ async function post<T>(path: string, body: unknown, authenticated: boolean): Pro
   };
   if (authenticated) {
     const token = await getToken();
-    if (!token) throw new ApiError("unauthorized");
+    if (!token) throw new ApiError("notSignedIn");
     headers.Authorization = `Bearer ${token}`;
   }
 
@@ -94,18 +102,13 @@ async function post<T>(path: string, body: unknown, authenticated: boolean): Pro
   }
 
   if (response.status === 401) {
+    const payload = await response.json().catch(() => null);
     if (authenticated) await clearToken();
-    throw new ApiError("unauthorized");
+    throw new ApiError("unauthorized", 401, extractMessage(payload));
   }
   const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    const message =
-      payload &&
-      typeof payload === "object" &&
-      typeof (payload as { message?: unknown }).message === "string"
-        ? (payload as { message: string }).message
-        : undefined;
-    throw new ApiError("http", response.status, message);
+    throw new ApiError("http", response.status, extractMessage(payload));
   }
   return unwrap<T>(payload);
 }
