@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getToken } from "./api";
-import { getPendingDeviceAuth, resumeSignIn, signIn } from "./deviceAuth";
+import {
+  DeviceAuthBusyError,
+  DeviceAuthError,
+  getPendingDeviceAuth,
+  resumeSignIn,
+  signIn,
+} from "./deviceAuth";
 
 function createFakeChrome() {
   const store: Record<string, unknown> = {};
@@ -66,7 +72,9 @@ describe("signIn", () => {
     await promise;
 
     expect(onCode).toHaveBeenCalledWith("ABCD");
-    expect(chrome.tabs.create).toHaveBeenCalledWith({ url: START.verificationUrl });
+    expect(chrome.tabs.create).toHaveBeenCalledWith({
+      url: START.verificationUrl,
+    });
     await expect(getToken()).resolves.toBe("tok-1");
     await expect(getPendingDeviceAuth()).resolves.toBeNull();
   });
@@ -94,14 +102,17 @@ describe("signIn", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const promise = signIn(() => {});
-    const assertion = expect(promise).rejects.toMatchObject({ kind: "http", status: 500 });
+    const assertion = expect(promise).rejects.toMatchObject({
+      kind: "http",
+      status: 500,
+    });
     await vi.advanceTimersByTimeAsync(10_000);
     await assertion;
 
     await expect(getPendingDeviceAuth()).resolves.toBeNull();
   });
 
-  it("rejects with denied when the user declines", async () => {
+  it("rejects with a DeviceAuthError reason of denied when the user declines", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse(200, START))
@@ -109,9 +120,13 @@ describe("signIn", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const promise = signIn(() => {});
-    const assertion = expect(promise).rejects.toThrow("denied");
+    const isDeviceAuthError = expect(promise).rejects.toBeInstanceOf(DeviceAuthError);
+    const hasDeniedReason = expect(promise).rejects.toMatchObject({
+      reason: "denied",
+    });
     await vi.advanceTimersByTimeAsync(10_000);
-    await assertion;
+    await isDeviceAuthError;
+    await hasDeniedReason;
   });
 
   it("rejects with expired once the deadline passes without a decision", async () => {
@@ -122,11 +137,57 @@ describe("signIn", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const promise = signIn(() => {});
-    const assertion = expect(promise).rejects.toThrow("expired");
+    const isDeviceAuthError = expect(promise).rejects.toBeInstanceOf(DeviceAuthError);
+    const hasExpiredReason = expect(promise).rejects.toMatchObject({
+      reason: "expired",
+    });
     await vi.advanceTimersByTimeAsync(10_000);
-    await assertion;
+    await isDeviceAuthError;
+    await hasExpiredReason;
 
     await expect(getPendingDeviceAuth()).resolves.toBeNull();
+  });
+
+  it("rejects a second concurrent signIn without starting a second device flow", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, START))
+      .mockResolvedValueOnce(jsonResponse(200, { status: "approved", accessToken: "tok-5" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = signIn(() => {});
+    const second = signIn(() => {});
+    const secondRejectsAsBusy = expect(second).rejects.toBeInstanceOf(DeviceAuthBusyError);
+
+    await secondRejectsAsBusy;
+    await vi.advanceTimersByTimeAsync(10_000);
+    await first;
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(chrome.tabs.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a resumeSignIn started while a user-initiated signIn is still in flight", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(200, START))
+      .mockResolvedValueOnce(jsonResponse(200, { status: "approved", accessToken: "tok-6" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = signIn(() => {});
+    const resumeAttempt = resumeSignIn({
+      deviceCode: "dc-other",
+      userCode: "OTHR",
+      intervalSec: 5,
+      deadline: Date.now() + 60_000,
+    });
+    const resumeRejectsAsBusy = expect(resumeAttempt).rejects.toBeInstanceOf(DeviceAuthBusyError);
+
+    await resumeRejectsAsBusy;
+    await vi.advanceTimersByTimeAsync(10_000);
+    await first;
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
 

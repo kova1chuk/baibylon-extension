@@ -2,8 +2,26 @@ import { useEffect, useState } from "react";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { Button } from "./components/ui/button";
 import { useToken } from "./hooks/useToken";
-import { clearToken } from "./lib/api";
-import { getPendingDeviceAuth, resumeSignIn, signIn } from "./lib/deviceAuth";
+import { ApiError, clearToken } from "./lib/api";
+import {
+  DeviceAuthBusyError,
+  DeviceAuthError,
+  getPendingDeviceAuth,
+  resumeSignIn,
+  signIn,
+} from "./lib/deviceAuth";
+
+function describeSignInError(error: unknown): string {
+  if (error instanceof DeviceAuthError) {
+    return error.reason === "denied"
+      ? "Вхід відхилено"
+      : "Код підтвердження протермінувався. Спробуйте ще раз";
+  }
+  if (error instanceof ApiError && error.kind === "network") {
+    return "Немає зʼєднання з сервером";
+  }
+  return "Вхід не завершено. Спробуйте ще раз.";
+}
 
 function App() {
   const { token, loading, refresh } = useToken();
@@ -23,9 +41,14 @@ function App() {
       setCode(pending.userCode);
       setBusy(true);
       resumeSignIn(pending)
-        .then(() => refresh())
-        .catch(() => setError("Вхід не завершено. Спробуйте ще раз."))
-        .finally(() => {
+        .then(() => {
+          refresh();
+          setBusy(false);
+          setCode(null);
+        })
+        .catch((err: unknown) => {
+          if (err instanceof DeviceAuthBusyError) return;
+          setError(describeSignInError(err));
           setBusy(false);
           setCode(null);
         });
@@ -41,12 +64,12 @@ function App() {
     try {
       await signIn(setCode);
       refresh();
-    } catch {
-      setError("Вхід не завершено. Спробуйте ще раз.");
-    } finally {
-      setBusy(false);
-      setCode(null);
+    } catch (err) {
+      if (err instanceof DeviceAuthBusyError) return;
+      setError(describeSignInError(err));
     }
+    setBusy(false);
+    setCode(null);
   };
 
   const handleSignOut = async () => {
