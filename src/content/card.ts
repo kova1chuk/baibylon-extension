@@ -80,8 +80,7 @@ export function errorText(error: unknown): string {
 
 export function mountCard() {
   const host = document.createElement("div");
-  // A hostile page's `* { all: unset !important }` can still reach the host itself (it lives
-  // in the page's light DOM); an inline !important is the only declaration that outranks it.
+  // Hostile page CSS like `* { all: unset !important }` still reaches the host (it's in the page's light DOM); inline !important is the only thing that outranks it.
   host.style.setProperty("all", "initial", "important");
   const root = host.attachShadow({ mode: "closed" });
   const style = document.createElement("style");
@@ -104,6 +103,10 @@ export function mountCard() {
       const top = Math.min(y + 12, window.innerHeight - 160);
       card.style.left = `${Math.max(8, left)}px`;
       card.style.top = `${Math.max(8, top)}px`;
+    },
+    // Composed events from the shadow tree retarget to `host` for outside listeners, so this is how a caller recognises its own card.
+    contains(target: EventTarget | null): boolean {
+      return target === host;
     },
   };
 }
