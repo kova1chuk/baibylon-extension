@@ -87,13 +87,13 @@ describe("classifySelection", () => {
     expect(classifySelection("🎉🎊✨")).toEqual({ kind: "passage", text: "🎉🎊✨" });
   });
 
-  it("keeps a 120-character single token as a word", () => {
-    const text = "a".repeat(120);
+  it("keeps an 80-character single token as a word", () => {
+    const text = "a".repeat(80);
     expect(classifySelection(text)).toEqual({ kind: "word", text });
   });
 
-  it("turns a 121-character single token into a passage instead of rejecting it", () => {
-    const text = "a".repeat(121);
+  it("turns an 81-character single token into a passage instead of rejecting it", () => {
+    const text = "a".repeat(81);
     expect(classifySelection(text)).toEqual({ kind: "passage", text });
   });
 
@@ -103,8 +103,10 @@ describe("classifySelection", () => {
     expect(result.kind === "passage" && result.text.length).toBe(20_000);
   });
 
+  // A trailing second word-like token keeps this a passage (two tokens) without disturbing
+  // the surrogate-pair boundary under test, which sits well inside the leading run.
   it("truncates an overlong passage to a whole number of UTF-16 units without splitting a surrogate pair", () => {
-    const text = `a${"𝌆".repeat(15_000)}`;
+    const text = `a${"𝌆".repeat(15_000)} b`;
     const result = classifySelection(text);
     expect(result.kind).toBe("passage");
     expect(result.kind === "passage" && result.text.length).toBe(19_999);
@@ -113,12 +115,29 @@ describe("classifySelection", () => {
 
   // "world." segments into two total segments ("world", ".") but only one is word-like;
   // counting all segments instead of filtering by isWordLike misclassifies this as a passage.
-  it("treats a word with trailing punctuation as a word, keeping the punctuation attached", () => {
-    expect(classifySelection("world.")).toEqual({ kind: "word", text: "world." });
+  it("treats a word with trailing punctuation as a word, sending the segmented token without the punctuation", () => {
+    expect(classifySelection("world.")).toEqual({ kind: "word", text: "world" });
   });
 
-  it("treats a word with trailing exclamation as a word, keeping the punctuation attached", () => {
-    expect(classifySelection("hello!")).toEqual({ kind: "word", text: "hello!" });
+  it("treats a word with trailing exclamation as a word, sending the segmented token without the punctuation", () => {
+    expect(classifySelection("hello!")).toEqual({ kind: "word", text: "hello" });
+  });
+
+  it("strips surrounding parentheses down to the segmented token", () => {
+    expect(classifySelection("(sea)")).toEqual({ kind: "word", text: "sea" });
+  });
+
+  it("keeps a word-internal apostrophe, which the segmenter includes in the token", () => {
+    expect(classifySelection("don't")).toEqual({ kind: "word", text: "don't" });
+  });
+
+  it("treats a non-Latin word with trailing punctuation as a word, stripping the punctuation", () => {
+    expect(classifySelection("привіт.")).toEqual({ kind: "word", text: "привіт" });
+  });
+
+  // The segmenter marks a run of digits word-like too, but the server's lexical pattern requires a leading letter.
+  it("treats a digit-only token as a passage rather than a word, since it fails the server's lexical pattern", () => {
+    expect(classifySelection("123")).toEqual({ kind: "passage", text: "123" });
   });
 });
 

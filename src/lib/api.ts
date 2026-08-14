@@ -8,7 +8,8 @@ import type {
 
 export const BASE_URL = "https://word-flow-ai-tutor-nest-production.up.railway.app";
 
-const MAX_WORD_LENGTH = 120;
+const LEXICAL_SURFACE_PATTERN = /^\p{L}[\p{L}\p{M}'’-]*$/u;
+const MAX_LEXICAL_SURFACE_LENGTH = 80;
 const MAX_PASSAGE_LENGTH = 20_000;
 
 export class ApiError extends Error {
@@ -56,12 +57,21 @@ export function classifySelection(raw: string): Selection {
 
   const segmenter = new Intl.Segmenter(undefined, { granularity: "word" });
   let wordLikeCount = 0;
+  let token = "";
   for (const segment of segmenter.segment(collapsed)) {
-    if (segment.isWordLike) wordLikeCount++;
+    if (segment.isWordLike) {
+      wordLikeCount++;
+      token = segment.segment;
+    }
   }
 
-  if (wordLikeCount === 1 && collapsed.length <= MAX_WORD_LENGTH) {
-    return { kind: "word", text: collapsed };
+  // The server validates the whole posted surface, so send the segmenter's token (punctuation stripped), not the raw selection.
+  if (
+    wordLikeCount === 1 &&
+    LEXICAL_SURFACE_PATTERN.test(token) &&
+    token.length <= MAX_LEXICAL_SURFACE_LENGTH
+  ) {
+    return { kind: "word", text: token };
   }
   return { kind: "passage", text: truncateUtf16(collapsed, MAX_PASSAGE_LENGTH) };
 }
