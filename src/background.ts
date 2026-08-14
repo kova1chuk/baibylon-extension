@@ -9,7 +9,23 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+export async function showSelectionInTab(tabId: number, text: string): Promise<void> {
+  try {
+    await chrome.tabs.sendMessage(tabId, { action: "vocairoShow", text });
+    return;
+  } catch {
+    // Tab predates the extension's install (or hasn't navigated since) — no content script
+    // is listening yet. Inject it on demand and retry once before giving up.
+  }
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+    await chrome.tabs.sendMessage(tabId, { action: "vocairoShow", text });
+  } catch (error) {
+    console.error("Vocairo: could not show the card in this tab", error);
+  }
+}
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== MENU_ID || !info.selectionText || !tab?.id) return;
-  chrome.tabs.sendMessage(tab.id, { action: "vocairoShow", text: info.selectionText });
+  void showSelectionInTab(tab.id, info.selectionText);
 });

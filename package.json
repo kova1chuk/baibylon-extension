@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:extension": "vite build",
+    "build:extension": "vite build && VOCAIRO_EXTENSION_ENTRY=content vite build --config vite.extension-script.config.ts && VOCAIRO_EXTENSION_ENTRY=background vite build --config vite.extension-script.config.ts",
     "typecheck": "tsgo --noEmit",
     "lint": "oxlint -c oxlint.json",
     "lint:fix": "oxlint -c oxlint.json --fix",

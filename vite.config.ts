@@ -16,7 +16,7 @@ export default defineConfig({
         // Copy manifest.json
         copyFileSync(
           resolve(__dirname, "public/manifest.json"),
-          resolve(__dirname, "dist/manifest.json")
+          resolve(__dirname, "dist/manifest.json"),
         );
         // Copy icon files
         const iconSizes = [16, 32, 48, 128];
@@ -32,10 +32,12 @@ export default defineConfig({
   ],
   build: {
     rollupOptions: {
+      // content.ts and background.ts are built separately (see vite.extension-script.config.ts):
+      // MV3 loads them as classic scripts, and bundling them alongside the popup here would let
+      // Rollup extract lib/api.ts into a shared chunk pulled in via a bare `import`, which Chrome
+      // refuses to execute outside a module script.
       input: {
         main: resolve(__dirname, "index.html"),
-        content: resolve(__dirname, "src/content.ts"),
-        background: resolve(__dirname, "src/background.ts"),
       },
       output: {
         entryFileNames: "[name].js",
