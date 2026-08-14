@@ -1,13 +1,94 @@
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { Button } from "./components/ui/button";
+import { useToken } from "./hooks/useToken";
+import { clearToken } from "./lib/api";
+import { getPendingDeviceAuth, resumeSignIn, signIn } from "./lib/deviceAuth";
 
 function App() {
+  const { token, loading, refresh } = useToken();
+  const [code, setCode] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [resuming, setResuming] = useState(true);
+
+  // The popup closes on blur, which kills signIn's poll loop the moment chrome.tabs.create
+  // shifts focus to the /device tab; reopening the popup resumes any pending flow from storage.
+  useEffect(() => {
+    let cancelled = false;
+    getPendingDeviceAuth().then((pending) => {
+      if (cancelled) return;
+      setResuming(false);
+      if (!pending) return;
+      setCode(pending.userCode);
+      setBusy(true);
+      resumeSignIn(pending)
+        .then(() => refresh())
+        .catch(() => setError("Вхід не завершено. Спробуйте ще раз."))
+        .finally(() => {
+          setBusy(false);
+          setCode(null);
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [refresh]);
+
+  const handleSignIn = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await signIn(setCode);
+      refresh();
+    } catch {
+      setError("Вхід не завершено. Спробуйте ще раз.");
+    } finally {
+      setBusy(false);
+      setCode(null);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await clearToken();
+    refresh();
+  };
+
+  const isLoading = loading || resuming;
+
   return (
     <div className="w-96 bg-background text-foreground p-4 space-y-3">
       <div className="flex items-center justify-between">
         <h1 className="text-sm font-semibold">Vocairo</h1>
         <ThemeToggle />
       </div>
-      <p className="text-xs text-muted-foreground">Налаштування зʼявляться тут.</p>
+
+      {isLoading ? (
+        <p className="text-xs text-muted-foreground">Завантаження…</p>
+      ) : token ? (
+        <>
+          <p className="text-xs text-muted-foreground">
+            Ви увійшли. Виділіть слово на будь-якій сторінці.
+          </p>
+          <Button variant="outline" size="sm" onClick={handleSignOut}>
+            Вийти
+          </Button>
+        </>
+      ) : (
+        <>
+          <p className="text-xs text-muted-foreground">
+            {busy
+              ? "Підтвердьте вхід у вкладці, що відкрилась, тоді поверніться до цього вікна."
+              : "Підтвердьте вхід у вкладці, що відкриється."}
+          </p>
+          {code && <p className="text-sm font-mono">Код: {code}</p>}
+          <Button size="sm" disabled={busy} onClick={handleSignIn}>
+            {busy ? "Очікуємо підтвердження…" : "Увійти"}
+          </Button>
+        </>
+      )}
+
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
