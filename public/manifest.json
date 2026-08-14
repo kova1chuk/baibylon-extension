@@ -9,9 +9,9 @@
     "48": "icon48.png",
     "128": "icon128.png"
   },
-  "permissions": ["activeTab", "storage", "contextMenus", "identity", "tabs"],
+  "permissions": ["activeTab", "storage", "contextMenus", "scripting"],
   "host_permissions": [
-    "https://*.supabase.co/*"
+    "https://word-flow-ai-tutor-nest-production.up.railway.app/*"
   ],
   "action": {
     "default_popup": "index.html",
