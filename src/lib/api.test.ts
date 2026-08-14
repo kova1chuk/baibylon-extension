@@ -36,6 +36,15 @@ function jsonResponse(status: number, body: unknown): Response {
   } as Response;
 }
 
+// A gateway can answer with an empty or HTML body; json() then rejects.
+function unparsableResponse(status: number): Response {
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    json: () => Promise.reject(new SyntaxError("Unexpected end of JSON input")),
+  } as Response;
+}
+
 describe("unwrap", () => {
   it("returns the data field of a wrapped payload", () => {
     expect(unwrap<{ a: number }>({ success: true, data: { a: 1 } })).toEqual({ a: 1 });
@@ -120,6 +129,32 @@ describe("post (via lookup/startDeviceAuth)", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    Reflect.deleteProperty(globalThis, "chrome");
+  });
+
+  it("still clears the token and throws unauthorized when a 401 carries an unparsable body", async () => {
+    globalThis.chrome = createFakeChrome();
+    await setToken("stale-token");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(unparsableResponse(401)));
+
+    await expect(lookup("world")).rejects.toMatchObject({
+      kind: "unauthorized",
+      status: 401,
+      message: "unauthorized",
+    });
+    await expect(getToken()).resolves.toBeNull();
+  });
+
+  it("throws http with no message when a 500 carries an unparsable body", async () => {
+    globalThis.chrome = createFakeChrome();
+    await setToken("token");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(unparsableResponse(500)));
+
+    await expect(lookup("world")).rejects.toMatchObject({
+      kind: "http",
+      status: 500,
+      message: "http",
+    });
   });
 
   it("throws notSignedIn and issues no fetch when no token is stored", async () => {
