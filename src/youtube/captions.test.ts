@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  type TokenPatchOp,
+  type WordToken,
   didCaptionDisplayChange,
+  diffWordTokens,
   extractVideoId,
   joinCaptionSegments,
   parseCaptionTracklist,
@@ -337,5 +340,118 @@ describe("splitIntoWordTokens", () => {
   it("marks a digit-leading token clickable (word-like isn't the same as lexical)", () => {
     const tokens = splitIntoWordTokens("28x28 pixels");
     expect(tokens.find((token) => token.text === "28x28")?.clickable).toBe(true);
+  });
+});
+
+describe("diffWordTokens", () => {
+  const word = (text: string): WordToken => ({ text, clickable: true });
+  const gap: WordToken = { text: " ", clickable: false };
+
+  it("produces no operations at all when the token list is unchanged", () => {
+    const tokens = splitIntoWordTokens("the cat sat");
+    expect(diffWordTokens(tokens, [...tokens])).toEqual([]);
+  });
+
+  it("appends only the new tail when a word arrives, touching nothing before it", () => {
+    expect(
+      diffWordTokens(splitIntoWordTokens("the cat"), splitIntoWordTokens("the cat sat")),
+    ).toEqual([{ type: "append", tokens: [gap, word("sat")] }]);
+  });
+
+  it("appends everything when the line starts from nothing", () => {
+    expect(diffWordTokens([], [word("hi")])).toEqual([{ type: "append", tokens: [word("hi")] }]);
+  });
+
+  it("replaces every token when the whole line switches", () => {
+    const next = splitIntoWordTokens("a dog barked");
+    expect(diffWordTokens(splitIntoWordTokens("the cat sat"), next)).toEqual([
+      { type: "truncate", keep: 0 },
+      { type: "append", tokens: next },
+    ]);
+  });
+
+  it("keeps the untouched prefix when a word changes mid-sequence", () => {
+    expect(
+      diffWordTokens(splitIntoWordTokens("the cat sat"), splitIntoWordTokens("the cat ran")),
+    ).toEqual([
+      { type: "truncate", keep: 4 },
+      { type: "append", tokens: [word("ran")] },
+    ]);
+  });
+
+  it("only truncates when the line loses its trailing words", () => {
+    expect(
+      diffWordTokens(splitIntoWordTokens("the cat sat"), splitIntoWordTokens("the cat")),
+    ).toEqual([{ type: "truncate", keep: 3 }]);
+  });
+
+  it("clears everything for an empty line", () => {
+    expect(diffWordTokens(splitIntoWordTokens("the cat"), [])).toEqual([
+      { type: "truncate", keep: 0 },
+    ]);
+  });
+
+  it("replaces a token whose text is unchanged but whose clickability flipped", () => {
+    const previous: WordToken[] = [word("a"), gap, { text: "-", clickable: false }];
+    const next: WordToken[] = [word("a"), gap, { text: "-", clickable: true }];
+    expect(diffWordTokens(previous, next)).toEqual([
+      { type: "truncate", keep: 2 },
+      { type: "append", tokens: [{ text: "-", clickable: true }] },
+    ]);
+  });
+
+  // The point of the whole exercise: the node a cursor is already travelling towards has to be the
+  // same object after an update, not an equal-looking replacement.
+  describe("applied to a node list", () => {
+    interface FakeNode {
+      readonly token: WordToken;
+    }
+
+    function apply(nodes: FakeNode[], ops: TokenPatchOp[]): FakeNode[] {
+      let result = nodes;
+      for (const op of ops) {
+        result =
+          op.type === "truncate"
+            ? result.slice(0, op.keep)
+            : [...result, ...op.tokens.map((token) => ({ token }))];
+      }
+      return result;
+    }
+
+    function feed(lines: string[]): { nodes: FakeNode[]; first: FakeNode[] } {
+      let tokens: WordToken[] = [];
+      let nodes: FakeNode[] = [];
+      let first: FakeNode[] = [];
+      for (const [index, line] of lines.entries()) {
+        const next = splitIntoWordTokens(line);
+        nodes = apply(nodes, diffWordTokens(tokens, next));
+        tokens = next;
+        if (index === 0) first = nodes;
+      }
+      return { nodes, first };
+    }
+
+    it("keeps the identical node for every word that was already on screen", () => {
+      const { nodes, first } = feed(["the cat", "the cat sat", "the cat sat on"]);
+      expect(first).toHaveLength(3);
+      for (const [index, node] of first.entries()) expect(nodes[index]).toBe(node);
+    });
+
+    it("keeps the prefix nodes but rebuilds from the word that changed", () => {
+      const { nodes, first } = feed(["the cat sat", "the cat ran"]);
+      for (let index = 0; index < 4; index++) expect(nodes[index]).toBe(first[index]);
+      expect(nodes[4]).not.toBe(first[4]);
+      expect(nodes.map((node) => node.token.text).join("")).toBe("the cat ran");
+    });
+
+    it("shares no node with the previous line when the caption switches wholesale", () => {
+      const { nodes, first } = feed(["the cat sat", "a dog barked"]);
+      for (const node of nodes) expect(first).not.toContain(node);
+    });
+
+    it("leaves nothing behind once the line empties", () => {
+      const { nodes } = feed(["the", "the cat", "the cat sat", "a dog barked", ""]);
+      expect(nodes).toEqual([]);
+    });
   });
 });

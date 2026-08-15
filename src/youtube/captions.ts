@@ -157,3 +157,25 @@ export function splitIntoWordTokens(text: string): WordToken[] {
   }
   return tokens;
 }
+
+export type TokenPatchOp =
+  | { type: "truncate"; keep: number }
+  | { type: "append"; tokens: WordToken[] };
+
+function isSameToken(a: WordToken, b: WordToken): boolean {
+  return a.text === b.text && a.clickable === b.clickable;
+}
+
+// Only a token that kept both its text *and* its index is reused, because only those two together
+// guarantee the rendered word occupies the same pixels — which is the whole point: a word the
+// cursor is already travelling towards must not be replaced or moved out from under it.
+export function diffWordTokens(previous: WordToken[], next: WordToken[]): TokenPatchOp[] {
+  const limit = Math.min(previous.length, next.length);
+  let shared = 0;
+  while (shared < limit && isSameToken(previous[shared], next[shared])) shared++;
+
+  const ops: TokenPatchOp[] = [];
+  if (shared < previous.length) ops.push({ type: "truncate", keep: shared });
+  if (shared < next.length) ops.push({ type: "append", tokens: next.slice(shared) });
+  return ops;
+}

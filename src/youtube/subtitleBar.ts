@@ -1,10 +1,12 @@
-import { accountLearningLanguage } from "../lib/api";
+import { accountLearningLanguage } from "../lib/apiBridge";
 import { requestCaptionTracks, setCaptionTrack } from "./bridgeClient";
 import {
   type CaptionDisplay,
   type CaptionTrackSelection,
   DEFAULT_LEARNING_LANGUAGE,
+  type WordToken,
   didCaptionDisplayChange,
+  diffWordTokens,
   extractVideoId,
   joinCaptionSegments,
   resolveCaptionDisplay,
@@ -14,36 +16,39 @@ import {
 
 const STYLE = `
 :host { all: initial; }
+/* Every rule here exists to keep an on-screen word where it is; none of them are cosmetic.
+   width+text-align: a centred, content-width line shifts every earlier word when one is appended.
+   height: reserves two lines so a wrap grows downward instead of shoving the first line up.
+   text-wrap: the pretty/balance modes may re-break earlier lines once later words arrive.
+   pointer-events: the reserved box is mostly empty, so only .word may take clicks off the player. */
 .bar {
   position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%);
-  max-width: 88%; pointer-events: auto;
-  padding: 6px 14px; border-radius: 6px;
-  background: rgba(0,0,0,.75); color: #fff;
+  width: 80%; height: 2.8em; pointer-events: none;
+  color: #fff;
   font: 500 18px/1.4 -apple-system, system-ui, sans-serif;
-  text-align: center;
+  text-align: left; text-wrap: wrap;
 }
-.word { cursor: pointer; border-radius: 3px; padding: 0 1px; }
+/* Inline, not painted on .bar: the fixed-size box would otherwise be a permanent slab over the video. */
+.plate {
+  padding: 2px 10px; border-radius: 6px; background: rgba(0,0,0,.75);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.word { cursor: pointer; border-radius: 3px; padding: 0 1px; pointer-events: auto; }
 .word:hover { background: rgba(255,255,255,.25); text-decoration: underline; }
 .message { opacity: .8; font-style: italic; }
 .hidden { display: none; }
 `;
 
 interface SubtitleBar {
-  render(display: CaptionDisplay, onWordClick: (word: string, x: number, y: number) => void): void;
+  render(display: CaptionDisplay): void;
   destroy(): void;
 }
 
-function renderMessage(bar: HTMLElement, text: string): void {
-  bar.classList.remove("hidden");
-  const span = document.createElement("span");
-  span.className = "message";
-  // textContent, never innerHTML: this text is either our own copy or a caption line mirrored
-  // straight out of the page's DOM, so it gets the same treatment as any untrusted string.
-  span.textContent = text;
-  bar.append(span);
-}
-
-function mountSubtitleBar(playerEl: Element): SubtitleBar {
+// Bound once at mount, not per render: a reused token node keeps the listener it was created with.
+function mountSubtitleBar(
+  playerEl: Element,
+  onWordClick: (word: string, x: number, y: number) => void,
+): SubtitleBar {
   const host = document.createElement("div");
   // Same hostile-page-CSS defense as content/card.ts's mountCard: !important is the only thing
   // that outranks a page rule like `* { all: unset !important }`.
@@ -57,42 +62,75 @@ function mountSubtitleBar(playerEl: Element): SubtitleBar {
   style.textContent = STYLE;
   const bar = document.createElement("div");
   bar.className = "bar hidden";
+  const lineEl = document.createElement("span");
+  lineEl.className = "plate line hidden";
+  const messageEl = document.createElement("span");
+  messageEl.className = "plate message hidden";
+  bar.append(lineEl, messageEl);
   root.append(style, bar);
   playerEl.append(host);
 
+  // Mirrors lineEl's children exactly; nothing else ever writes to lineEl, so the diff can trust it.
+  let renderedTokens: WordToken[] = [];
+
+  function createTokenSpan(token: WordToken): HTMLSpanElement {
+    const span = document.createElement("span");
+    // textContent, never innerHTML: a caption line is mirrored straight out of the page's DOM, so
+    // it gets the same treatment as any untrusted string.
+    span.textContent = token.text;
+    if (token.clickable) {
+      span.className = "word";
+      span.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onWordClick(token.text, event.clientX, event.clientY);
+      });
+    }
+    return span;
+  }
+
+  function renderTokens(text: string): void {
+    const tokens = text ? splitIntoWordTokens(text) : [];
+    for (const op of diffWordTokens(renderedTokens, tokens)) {
+      if (op.type === "truncate") {
+        for (const stale of Array.from(lineEl.children).slice(op.keep)) stale.remove();
+      } else {
+        for (const token of op.tokens) lineEl.append(createTokenSpan(token));
+      }
+    }
+    renderedTokens = tokens;
+  }
+
+  function showMessage(text: string): void {
+    renderTokens("");
+    messageEl.textContent = text;
+    lineEl.classList.add("hidden");
+    messageEl.classList.remove("hidden");
+    bar.classList.remove("hidden");
+  }
+
   return {
-    render(display, onWordClick) {
-      bar.replaceChildren();
+    render(display) {
       switch (display.kind) {
         case "enableFailed":
-          renderMessage(bar, "Не вдалося увімкнути субтитри для цього відео");
+          showMessage("Не вдалося увімкнути субтитри для цього відео");
           return;
         case "unavailable":
-          renderMessage(bar, "У цього відео немає субтитрів");
-          return;
-        case "empty":
-          bar.classList.add("hidden");
+          showMessage("У цього відео немає субтитрів");
           return;
         case "wrongLanguage":
-          renderMessage(
-            bar,
+          showMessage(
             `Немає субтитрів потрібною мовою. Показано: ${display.shownLanguageName} — ${display.text}`,
           );
           return;
+        case "empty":
+          renderTokens("");
+          bar.classList.add("hidden");
+          return;
         case "line":
+          renderTokens(display.text);
+          messageEl.classList.add("hidden");
+          lineEl.classList.remove("hidden");
           bar.classList.remove("hidden");
-          for (const token of splitIntoWordTokens(display.text)) {
-            const span = document.createElement("span");
-            span.textContent = token.text;
-            if (token.clickable) {
-              span.className = "word";
-              span.addEventListener("click", (event) => {
-                event.stopPropagation();
-                onWordClick(token.text, event.clientX, event.clientY);
-              });
-            }
-            bar.append(span);
-          }
           return;
       }
     },
@@ -172,7 +210,7 @@ export function initYoutubeSubtitles(
     const display = resolveCaptionDisplay(enableFailed, selection, text);
     if (didCaptionDisplayChange(lastDisplay, display)) {
       lastDisplay = display;
-      bar.render(display, onWordClick);
+      bar.render(display);
     }
   }
 
@@ -242,14 +280,14 @@ export function initYoutubeSubtitles(
       captionSeen = false;
       captionToggleAttempts = 0;
       waitingForCaptionSince = null;
-      bar?.render({ kind: "empty" }, onWordClick);
+      bar?.render({ kind: "empty" });
       if (videoId) void loadCaptionsFor(generation);
     }
 
     const playerEl = onWatchPage ? document.querySelector("#movie_player") : null;
 
     if (playerEl && !bar) {
-      bar = mountSubtitleBar(playerEl);
+      bar = mountSubtitleBar(playerEl, onWordClick);
       // Observing the stable #movie_player (not the caption window it creates/destroys/replaces
       // internally) means we never hold a reference that YouTube can invalidate out from under us —
       // every callback re-queries .ytp-caption-segment fresh.

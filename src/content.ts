@@ -1,4 +1,5 @@
-import { classifySelection, lookup, passage } from "./lib/api";
+import { classifySelection } from "./lib/api";
+import { lookup, passage } from "./lib/apiBridge";
 import { errorText, escapeHtml, mountCard, renderLookup, renderPassage } from "./content/card";
 import { initYoutubeSubtitles } from "./youtube/subtitleBar";
 

@@ -12,9 +12,11 @@ const LEXICAL_SURFACE_PATTERN = /^\p{L}[\p{L}\p{M}'’-]*$/u;
 const MAX_LEXICAL_SURFACE_LENGTH = 80;
 const MAX_PASSAGE_LENGTH = 20_000;
 
+export type ApiErrorKind = "network" | "notSignedIn" | "unauthorized" | "http";
+
 export class ApiError extends Error {
   constructor(
-    readonly kind: "network" | "notSignedIn" | "unauthorized" | "http",
+    readonly kind: ApiErrorKind,
     readonly status?: number,
     message?: string,
   ) {
