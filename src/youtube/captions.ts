@@ -52,6 +52,29 @@ export function parseCaptionTracks(playerResponse: unknown): CaptionTrack[] {
   return result;
 }
 
+// player.getOption("captions","tracklist") entries: `kind` is "" (not absent) for manual
+// tracks, and `name` is always "" here (unlike playerResponse's {simpleText} shape), so the
+// label falls back through displayName/languageName instead.
+export function parseCaptionTracklist(tracklist: unknown): CaptionTrack[] {
+  if (!Array.isArray(tracklist)) return [];
+
+  const result: CaptionTrack[] = [];
+  for (const raw of tracklist) {
+    if (!raw || typeof raw !== "object") continue;
+    const { languageCode, languageName, displayName, kind } = raw as Record<string, unknown>;
+    if (typeof languageCode !== "string") continue;
+    result.push({
+      languageCode,
+      name:
+        (typeof displayName === "string" && displayName) ||
+        (typeof languageName === "string" && languageName) ||
+        languageCode,
+      isAsr: kind === "asr",
+    });
+  }
+  return result;
+}
+
 export type CaptionTrackSelection =
   | { status: "unavailable" }
   | { status: "matched"; track: CaptionTrack }
@@ -90,19 +113,21 @@ export function joinCaptionSegments(segments: string[]): string {
 }
 
 export type CaptionDisplay =
-  | { kind: "off" }
   | { kind: "unavailable" }
+  | { kind: "enableFailed" }
   | { kind: "empty" }
   | { kind: "line"; text: string }
   | { kind: "wrongLanguage"; text: string; shownLanguageName: string };
 
+// enableFailed is a decision the caller already made (retries exhausted, no caption segment ever
+// seen), not something read here — aria-pressed on YouTube's CC button lies about caption state on load.
 export function resolveCaptionDisplay(
-  captionsOn: boolean,
+  enableFailed: boolean,
   selection: CaptionTrackSelection,
   line: string,
 ): CaptionDisplay {
   if (selection.status === "unavailable") return { kind: "unavailable" };
-  if (!captionsOn) return { kind: "off" };
+  if (enableFailed) return { kind: "enableFailed" };
 
   const trimmed = line.trim();
   if (!trimmed) return { kind: "empty" };

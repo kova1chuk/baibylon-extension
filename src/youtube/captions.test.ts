@@ -3,6 +3,7 @@ import {
   didCaptionDisplayChange,
   extractVideoId,
   joinCaptionSegments,
+  parseCaptionTracklist,
   parseCaptionTracks,
   resolveCaptionDisplay,
   selectCaptionTrack,
@@ -86,6 +87,63 @@ describe("parseCaptionTracks", () => {
         captions: { playerCaptionsTracklistRenderer: { captionTracks: "nope" } },
       }),
     ).toEqual([]);
+  });
+});
+
+describe("parseCaptionTracklist", () => {
+  it("maps a manual track, treating its empty-string kind as not ASR", () => {
+    const tracks = parseCaptionTracklist([
+      {
+        languageCode: "en",
+        languageName: "English",
+        displayName: "English",
+        kind: "",
+        name: "",
+        id: null,
+        vss_id: ".en",
+        is_default: false,
+        is_servable: false,
+        is_translateable: true,
+      },
+    ]);
+    expect(tracks).toEqual([{ languageCode: "en", name: "English", isAsr: false }]);
+  });
+
+  it('treats kind "asr" as an auto-generated track', () => {
+    const tracks = parseCaptionTracklist([
+      { languageCode: "en", languageName: "English", displayName: "English", kind: "asr" },
+    ]);
+    expect(tracks[0]?.isAsr).toBe(true);
+  });
+
+  it("falls back to languageName when displayName is missing", () => {
+    const tracks = parseCaptionTracklist([
+      { languageCode: "uk", languageName: "Ukrainian", displayName: "", kind: "" },
+    ]);
+    expect(tracks[0]?.name).toBe("Ukrainian");
+  });
+
+  it("falls back to languageCode when both displayName and languageName are missing", () => {
+    const tracks = parseCaptionTracklist([{ languageCode: "fr", kind: "" }]);
+    expect(tracks[0]?.name).toBe("fr");
+  });
+
+  it("prefers displayName over languageName when both are present", () => {
+    const tracks = parseCaptionTracklist([
+      { languageCode: "en", languageName: "English", displayName: "English (custom)", kind: "" },
+    ]);
+    expect(tracks[0]?.name).toBe("English (custom)");
+  });
+
+  it("skips entries missing a languageCode instead of throwing", () => {
+    const tracks = parseCaptionTracklist([{ displayName: "x" }, null, "garbage"]);
+    expect(tracks).toEqual([]);
+  });
+
+  it("returns an empty array when the tracklist is not an array", () => {
+    expect(parseCaptionTracklist(undefined)).toEqual([]);
+    expect(parseCaptionTracklist(null)).toEqual([]);
+    expect(parseCaptionTracklist({})).toEqual([]);
   });
 });
 
@@ -173,29 +231,29 @@ describe("resolveCaptionDisplay", () => {
   };
   const unavailable = { status: "unavailable" as const };
 
-  it("reports unavailable regardless of caption toggle state", () => {
+  it("reports unavailable regardless of enableFailed, since no track exists at all", () => {
     expect(resolveCaptionDisplay(true, unavailable, "anything")).toEqual({ kind: "unavailable" });
     expect(resolveCaptionDisplay(false, unavailable, "")).toEqual({ kind: "unavailable" });
   });
 
-  it("reports off when captions are toggled off, even with a matched track", () => {
-    expect(resolveCaptionDisplay(false, matched, "hello")).toEqual({ kind: "off" });
+  it("reports enableFailed once retries are exhausted, even with a matched track", () => {
+    expect(resolveCaptionDisplay(true, matched, "hello")).toEqual({ kind: "enableFailed" });
   });
 
-  it("reports empty when captions are on but no line is currently showing", () => {
-    expect(resolveCaptionDisplay(true, matched, "")).toEqual({ kind: "empty" });
-    expect(resolveCaptionDisplay(true, matched, "   ")).toEqual({ kind: "empty" });
+  it("reports empty when enabling hasn't failed but no line is currently showing", () => {
+    expect(resolveCaptionDisplay(false, matched, "")).toEqual({ kind: "empty" });
+    expect(resolveCaptionDisplay(false, matched, "   ")).toEqual({ kind: "empty" });
   });
 
   it("reports a plain line for a matched target-language track", () => {
-    expect(resolveCaptionDisplay(true, matched, "hello world")).toEqual({
+    expect(resolveCaptionDisplay(false, matched, "hello world")).toEqual({
       kind: "line",
       text: "hello world",
     });
   });
 
   it("reports wrongLanguage with the shown track's name for a fallback track", () => {
-    expect(resolveCaptionDisplay(true, fallback, "привіт")).toEqual({
+    expect(resolveCaptionDisplay(false, fallback, "привіт")).toEqual({
       kind: "wrongLanguage",
       text: "привіт",
       shownLanguageName: "Ukrainian",
@@ -219,7 +277,7 @@ describe("didCaptionDisplayChange", () => {
   });
 
   it("is true when the kind changes even if unrelated fields coincide", () => {
-    expect(didCaptionDisplayChange({ kind: "off" }, { kind: "empty" })).toBe(true);
+    expect(didCaptionDisplayChange({ kind: "enableFailed" }, { kind: "empty" })).toBe(true);
   });
 
   it("is false when a wrongLanguage display repeats with the same text and language", () => {

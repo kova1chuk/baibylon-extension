@@ -1,4 +1,4 @@
-import { parseCaptionTracks } from "./youtube/captions";
+import { parseCaptionTracklist, parseCaptionTracks } from "./youtube/captions";
 
 const REQUEST_TRACKS_EVENT = "vocairo:yt:requestCaptions";
 const TRACKS_RESPONSE_EVENT = "vocairo:yt:captionsResponse";
@@ -8,10 +8,31 @@ const SET_TRACK_RESPONSE_EVENT = "vocairo:yt:setCaptionTrackResponse";
 interface PlayerElement extends Element {
   getPlayerResponse?: () => unknown;
   setOption?: (module: string, option: string, value: unknown) => void;
+  getOption?: (module: string, option: string) => unknown;
+  loadModule?: (module: string) => void;
 }
 
 function getPlayer(): PlayerElement | null {
   return document.querySelector<PlayerElement>("#movie_player");
+}
+
+// The player never renders captions, and its tracklist stays empty, until this has been called
+// at least once on it — verified live, not documented anywhere. Safe to call repeatedly.
+function loadCaptionsModule(player: PlayerElement | null): void {
+  try {
+    player?.loadModule?.("captions");
+  } catch {
+    // Can throw while the player is still initializing; callers fall back to an empty tracklist.
+  }
+}
+
+function getLiveTracklist(player: PlayerElement | null): unknown[] {
+  try {
+    const tracklist = player?.getOption?.("captions", "tracklist");
+    return Array.isArray(tracklist) ? tracklist : [];
+  } catch {
+    return [];
+  }
 }
 
 function getFreshPlayerResponse(): unknown {
@@ -32,7 +53,13 @@ function getFreshPlayerResponse(): unknown {
 
 document.addEventListener(REQUEST_TRACKS_EVENT, (event) => {
   const requestId = (event as CustomEvent<{ requestId: string }>).detail?.requestId;
-  const tracks = parseCaptionTracks(getFreshPlayerResponse());
+  const player = getPlayer();
+  loadCaptionsModule(player);
+  const fromTracklist = parseCaptionTracklist(getLiveTracklist(player));
+  // The tracklist is the source of truth once the player has one; parseCaptionTracks only
+  // covers the window before the player (and thus loadModule) exists at all.
+  const tracks =
+    fromTracklist.length > 0 ? fromTracklist : parseCaptionTracks(getFreshPlayerResponse());
   document.dispatchEvent(new CustomEvent(TRACKS_RESPONSE_EVENT, { detail: { requestId, tracks } }));
 });
 
@@ -42,13 +69,21 @@ document.addEventListener(SET_TRACK_EVENT, (event) => {
   let ok = false;
   try {
     const player = getPlayer();
-    // {languageCode, kind} mirrors the raw captionTracks fields exactly, so this picks the same
-    // track selectCaptionTrack() picked instead of leaving YouTube to disambiguate on its own.
-    player?.setOption?.("captions", "track", {
-      languageCode: detail.languageCode,
-      ...(detail.isAsr ? { kind: "asr" } : {}),
+    loadCaptionsModule(player);
+    // setOption needs the actual tracklist entry object, not a synthetic {languageCode, kind}
+    // reconstruction — the latter is unverified and, pre-loadModule, doesn't work at all.
+    const entry = getLiveTracklist(player).find((raw) => {
+      if (!raw || typeof raw !== "object") return false;
+      const candidate = raw as Record<string, unknown>;
+      return (
+        candidate.languageCode === detail.languageCode &&
+        (candidate.kind === "asr") === detail.isAsr
+      );
     });
-    ok = Boolean(player);
+    if (entry) {
+      player?.setOption?.("captions", "track", entry);
+      ok = true;
+    }
   } catch {
     ok = false;
   }

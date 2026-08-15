@@ -64,8 +64,8 @@ function mountSubtitleBar(playerEl: Element): SubtitleBar {
     render(display, onWordClick) {
       bar.replaceChildren();
       switch (display.kind) {
-        case "off":
-          renderMessage(bar, "Увімкніть субтитри (CC) на відео, щоб перекладати слова");
+        case "enableFailed":
+          renderMessage(bar, "Не вдалося увімкнути субтитри для цього відео");
           return;
         case "unavailable":
           renderMessage(bar, "У цього відео немає субтитрів");
@@ -109,19 +109,6 @@ function findCaptionsButton(playerEl: Element): HTMLButtonElement | null {
   return playerEl.querySelector<HTMLButtonElement>(CAPTIONS_BUTTON_SELECTOR);
 }
 
-function areCaptionsOn(playerEl: Element): boolean {
-  return findCaptionsButton(playerEl)?.getAttribute("aria-pressed") === "true";
-}
-
-// Returns true once the toggle button was found, whether or not it needed a click — the caller
-// uses that to stop retrying, so a user who deliberately turns captions back off isn't fought every tick.
-function tryEnableCaptions(playerEl: Element): boolean {
-  const button = findCaptionsButton(playerEl);
-  if (!button) return false;
-  if (button.getAttribute("aria-pressed") !== "true") button.click();
-  return true;
-}
-
 function readCurrentCaptionText(playerEl: Element): string {
   const segments = Array.from(playerEl.querySelectorAll<HTMLElement>(CAPTION_SEGMENT_SELECTOR));
   return joinCaptionSegments(segments.map((segment) => segment.textContent ?? ""));
@@ -154,6 +141,8 @@ function getLearningLanguage(): Promise<string> {
 const NAV_POLL_MS = 750;
 const CAPTION_RETRY_DELAY_MS = 500;
 const CAPTION_RETRY_ATTEMPTS = 4;
+const CAPTION_APPEAR_TIMEOUT_MS = 4000;
+const MAX_CAPTION_TOGGLE_ATTEMPTS = 3;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -168,17 +157,48 @@ export function initYoutubeSubtitles(
   let captionObserver: MutationObserver | null = null;
   let selection: CaptionTrackSelection = { status: "unavailable" };
   let lastDisplay: CaptionDisplay | null = null;
-  let captionsEnableAttempted = false;
+  // aria-pressed on the CC button lies on load (reads "true" while nothing renders), so a caption
+  // segment actually appearing is the only evidence "enabled" ever gets. These three reset together
+  // on every video change, right alongside `generation`.
+  let captionSeen = false;
+  let captionToggleAttempts = 0;
+  let waitingForCaptionSince: number | null = null;
 
   function syncCaptionDisplay(playerEl: Element) {
     if (!bar) return;
-    const captionsOn = areCaptionsOn(playerEl);
-    const text = captionsOn ? readCurrentCaptionText(playerEl) : "";
-    const display = resolveCaptionDisplay(captionsOn, selection, text);
+    const text = readCurrentCaptionText(playerEl);
+    if (text.trim()) captionSeen = true;
+    const enableFailed = !captionSeen && captionToggleAttempts >= MAX_CAPTION_TOGGLE_ATTEMPTS;
+    const display = resolveCaptionDisplay(enableFailed, selection, text);
     if (didCaptionDisplayChange(lastDisplay, display)) {
       lastDisplay = display;
       bar.render(display, onWordClick);
     }
+  }
+
+  // Clicks the CC button as a last resort when a track is selected, the video is playing, and no
+  // caption segment has shown up for a few seconds — bounded so a video that truly never renders
+  // captions (confirmed live: track selected, setOption succeeds, still nothing) doesn't get
+  // fought forever, and neither does a user who deliberately toggles captions back off.
+  function maybeToggleCaptions(playerEl: Element) {
+    if (selection.status === "unavailable") return;
+    if (captionSeen || captionToggleAttempts >= MAX_CAPTION_TOGGLE_ATTEMPTS) return;
+
+    const video = document.querySelector<HTMLVideoElement>("#movie_player video");
+    if (!video || video.paused) {
+      waitingForCaptionSince = null;
+      return;
+    }
+
+    const now = Date.now();
+    waitingForCaptionSince ??= now;
+    if (now - waitingForCaptionSince < CAPTION_APPEAR_TIMEOUT_MS) return;
+
+    const button = findCaptionsButton(playerEl);
+    if (!button) return;
+    button.click();
+    captionToggleAttempts++;
+    waitingForCaptionSince = now;
   }
 
   async function loadCaptionsFor(myGeneration: number) {
@@ -219,7 +239,9 @@ export function initYoutubeSubtitles(
       generation++;
       selection = { status: "unavailable" };
       lastDisplay = null;
-      captionsEnableAttempted = false;
+      captionSeen = false;
+      captionToggleAttempts = 0;
+      waitingForCaptionSince = null;
       bar?.render({ kind: "empty" }, onWordClick);
       if (videoId) void loadCaptionsFor(generation);
     }
@@ -241,10 +263,7 @@ export function initYoutubeSubtitles(
     }
 
     if (playerEl) {
-      if (!captionsEnableAttempted && tryEnableCaptions(playerEl)) captionsEnableAttempted = true;
-      // Attribute changes (aria-pressed on the CC button) aren't in the observer's config — the
-      // player DOM churns on every attribute during playback, so watching attributes broadly would
-      // fire constantly for no gain. This poll is the deliberate, cheap backstop for that case.
+      maybeToggleCaptions(playerEl);
       syncCaptionDisplay(playerEl);
     }
   }
