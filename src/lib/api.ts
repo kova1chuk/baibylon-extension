@@ -89,7 +89,11 @@ export async function clearToken(): Promise<void> {
   await chrome.storage.local.remove("vocairoToken");
 }
 
-async function post<T>(path: string, body: unknown, authenticated: boolean): Promise<T> {
+async function request<T>(
+  path: string,
+  init: { method: "GET" } | { method: "POST"; body: unknown },
+  authenticated: boolean,
+): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -103,9 +107,9 @@ async function post<T>(path: string, body: unknown, authenticated: boolean): Pro
   let response: Response;
   try {
     response = await fetch(BASE_URL + path, {
-      method: "POST",
+      method: init.method,
       headers,
-      body: JSON.stringify(body),
+      ...(init.method === "POST" ? { body: JSON.stringify(init.body) } : {}),
     });
   } catch {
     throw new ApiError("network");
@@ -123,6 +127,10 @@ async function post<T>(path: string, body: unknown, authenticated: boolean): Pro
   return unwrap<T>(payload);
 }
 
+function post<T>(path: string, body: unknown, authenticated: boolean): Promise<T> {
+  return request<T>(path, { method: "POST", body }, authenticated);
+}
+
 export function lookup(surface: string): Promise<LookupResult> {
   return post<LookupResult>("/reading/local/lookup", { surface }, true);
 }
@@ -137,4 +145,12 @@ export function startDeviceAuth(): Promise<DeviceStart> {
 
 export function redeemDeviceToken(deviceCode: string): Promise<DeviceTokenResult> {
   return post<DeviceTokenResult>("/auth/device/token", { deviceCode }, false);
+}
+
+export function accountLearningLanguage(): Promise<string | null> {
+  return request<{ learning_language?: string | null }>(
+    "/account/profile",
+    { method: "GET" },
+    true,
+  ).then((profile) => profile.learning_language ?? null);
 }

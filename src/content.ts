@@ -1,5 +1,6 @@
 import { classifySelection, lookup, passage } from "./lib/api";
 import { errorText, escapeHtml, mountCard, renderLookup, renderPassage } from "./content/card";
+import { initYoutubeSubtitles } from "./youtube/subtitleBar";
 
 declare global {
   interface Window {
@@ -13,6 +14,24 @@ if (!window.__vocairoContentScriptMounted) {
 
   const card = mountCard();
   let button: HTMLButtonElement | null = null;
+
+  // Tracks the exact video we paused, so dismissal only resumes playback we ourselves stopped —
+  // a video the user had already paused before clicking a caption word must stay paused.
+  let videoPausedByLookup: HTMLVideoElement | null = null;
+
+  function pauseVideoForCaptionLookup() {
+    const video = document.querySelector<HTMLVideoElement>("#movie_player video");
+    if (video && !video.paused) {
+      video.pause();
+      videoPausedByLookup = video;
+    }
+  }
+
+  function resumeVideoIfPausedForLookup() {
+    if (!videoPausedByLookup) return;
+    videoPausedByLookup.play().catch(() => {});
+    videoPausedByLookup = null;
+  }
 
   async function run(raw: string, x: number, y: number) {
     const selection = classifySelection(raw);
@@ -71,12 +90,14 @@ if (!window.__vocairoContentScriptMounted) {
     if (event.target === button || card.contains(event.target)) return;
     card.hide();
     removeButton();
+    resumeVideoIfPausedForLookup();
   });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       card.hide();
       removeButton();
+      resumeVideoIfPausedForLookup();
     }
   });
 
@@ -85,4 +106,18 @@ if (!window.__vocairoContentScriptMounted) {
       void run(message.text, window.innerWidth / 2 - 180, window.innerHeight / 3);
     }
   });
+
+  // Gated on hostname only, not pathname: YouTube is an SPA, so a visitor can arrive at a /watch
+  // page long after this script's one-time injection without a reload. subtitleBar itself watches
+  // for that transition and every other navigation on every tick.
+  if (location.hostname === "www.youtube.com") {
+    initYoutubeSubtitles((word, x, y) => {
+      // onWordClick only ever receives non-empty clickable text, so classifySelection should never
+      // actually return "rejected" here — but that's an invariant of a third-party segmenter, not
+      // a guarantee. Check it directly: if it ever did, run() would return before showing a card,
+      // and pausing first would leave the video stuck paused with nothing left to trigger a resume.
+      if (classifySelection(word).kind !== "rejected") pauseVideoForCaptionLookup();
+      void run(word, x, y);
+    });
+  }
 }

@@ -2,9 +2,9 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 
 const entry = process.env.VOCAIRO_EXTENSION_ENTRY;
-if (entry !== "content" && entry !== "background") {
+if (entry !== "content" && entry !== "background" && entry !== "youtubeBridge") {
   throw new Error(
-    "Set VOCAIRO_EXTENSION_ENTRY=content|background before building with this config.",
+    "Set VOCAIRO_EXTENSION_ENTRY=content|background|youtubeBridge before building with this config.",
   );
 }
 
