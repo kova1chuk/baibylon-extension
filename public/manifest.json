@@ -10,9 +10,7 @@
     "128": "icon128.png"
   },
   "permissions": ["activeTab", "storage", "contextMenus", "scripting"],
-  "host_permissions": [
-    "https://word-flow-ai-tutor-nest-production.up.railway.app/*"
-  ],
+  "host_permissions": [],
   "action": {
     "default_popup": "index.html",
     "default_title": "Vocairo",

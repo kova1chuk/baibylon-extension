@@ -5,8 +5,9 @@ import type {
   PassageResult,
   Selection,
 } from "./types";
+import { DEFAULT_API_BASE_URL, resolveApiBaseUrl } from "./config";
 
-export const BASE_URL = "https://word-flow-ai-tutor-nest-production.up.railway.app";
+export const BASE_URL = resolveApiBaseUrl(import.meta.env.VITE_VOCAIRO_API_URL);
 
 const LEXICAL_SURFACE_PATTERN = /^\p{L}[\p{L}\p{M}'’-]*$/u;
 const MAX_LEXICAL_SURFACE_LENGTH = 80;
@@ -78,16 +79,45 @@ export function classifySelection(raw: string): Selection {
   return { kind: "passage", text: truncateUtf16(collapsed, MAX_PASSAGE_LENGTH) };
 }
 
-export async function getToken(): Promise<string | null> {
-  const { vocairoToken } = await chrome.storage.local.get("vocairoToken");
-  return typeof vocairoToken === "string" && vocairoToken ? vocairoToken : null;
+interface StoredToken {
+  origin: string;
+  token: string;
 }
 
-export async function setToken(token: string): Promise<void> {
-  await chrome.storage.local.set({ vocairoToken: token });
+function isStoredToken(value: unknown): value is StoredToken {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<StoredToken>;
+  return (
+    typeof candidate.origin === "string" &&
+    typeof candidate.token === "string" &&
+    Boolean(candidate.token)
+  );
+}
+
+export async function getToken(origin = BASE_URL): Promise<string | null> {
+  const { vocairoTokenRecord } = await chrome.storage.local.get("vocairoTokenRecord");
+  if (isStoredToken(vocairoTokenRecord)) {
+    return vocairoTokenRecord.origin === origin ? vocairoTokenRecord.token : null;
+  }
+
+  const { vocairoToken } = await chrome.storage.local.get("vocairoToken");
+  if (origin !== DEFAULT_API_BASE_URL || typeof vocairoToken !== "string" || !vocairoToken) {
+    return null;
+  }
+  await chrome.storage.local.set({
+    vocairoTokenRecord: { origin: DEFAULT_API_BASE_URL, token: vocairoToken },
+  });
+  await chrome.storage.local.remove("vocairoToken");
+  return vocairoToken;
+}
+
+export async function setToken(token: string, origin = BASE_URL): Promise<void> {
+  await chrome.storage.local.set({ vocairoTokenRecord: { origin, token } });
+  await chrome.storage.local.remove("vocairoToken");
 }
 
 export async function clearToken(): Promise<void> {
+  await chrome.storage.local.remove("vocairoTokenRecord");
   await chrome.storage.local.remove("vocairoToken");
 }
 

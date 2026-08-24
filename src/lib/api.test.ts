@@ -8,6 +8,7 @@ import {
   startDeviceAuth,
   unwrap,
 } from "./api";
+import { DEFAULT_API_BASE_URL, resolveApiBaseUrl } from "./config";
 
 function createFakeChrome() {
   const store: Record<string, unknown> = {};
@@ -56,6 +57,22 @@ describe("unwrap", () => {
 
   it("does not mistake a payload that merely has a data field", () => {
     expect(unwrap<{ data: string }>({ data: "plain" })).toEqual({ data: "plain" });
+  });
+});
+
+describe("API configuration", () => {
+  it("uses one overridable URL and normalizes its trailing slash", () => {
+    expect(resolveApiBaseUrl()).toBe(DEFAULT_API_BASE_URL);
+    expect(resolveApiBaseUrl(" https://api.example.test/ ")).toBe("https://api.example.test");
+  });
+
+  it("requires HTTPS except for explicit loopback development", () => {
+    expect(() => resolveApiBaseUrl("file:///tmp/api")).toThrow(/HTTPS/);
+    expect(() => resolveApiBaseUrl("http://api.example.test")).toThrow(/HTTPS/);
+    expect(resolveApiBaseUrl("http://localhost:3006/")).toBe("http://localhost:3006");
+    expect(resolveApiBaseUrl("http://127.0.0.1:3006/")).toBe("http://127.0.0.1:3006");
+    expect(() => resolveApiBaseUrl("https://api.example.test?debug=1")).toThrow(/query/);
+    expect(() => resolveApiBaseUrl("https://user:secret@api.example.test")).toThrow(/credentials/);
   });
 });
 
@@ -162,6 +179,13 @@ describe("post (via lookup/startDeviceAuth)", () => {
       message: "unauthorized",
     });
     await expect(getToken()).resolves.toBeNull();
+  });
+
+  it("never exposes a token to a different configured origin", async () => {
+    await setToken("origin-a-token", "https://origin-a.example");
+
+    await expect(getToken("https://origin-a.example")).resolves.toBe("origin-a-token");
+    await expect(getToken("https://origin-b.example")).resolves.toBeNull();
   });
 
   it("throws http with no message when a 500 carries an unparsable body", async () => {

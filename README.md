@@ -1,7 +1,7 @@
 # Vocairo Extension
 
 Chrome extension prototype built with React 18, TypeScript, Vite, Tailwind CSS
-4, Recoil, and Supabase Auth.
+4, and the Vocairo device-auth API.
 
 ## Local Development
 
@@ -23,18 +23,11 @@ and select `dist/`.
 ## Environment
 
 ```env
-VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
+VITE_VOCAIRO_API_URL=http://localhost:3006
 ```
 
-For Google OAuth, add the Chrome extension redirect URL to both Google Cloud and
-Supabase Auth:
-
-```text
-https://<extension-id>.chromiumapp.org
-```
-
-The extension ID is visible in `chrome://extensions` after loading `dist/`.
+`VITE_VOCAIRO_API_URL` controls both API requests and the generated Chrome host
+permission. If omitted, the production API remains the backward-compatible default.
 
 ## Commands
 

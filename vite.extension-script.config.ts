@@ -12,6 +12,7 @@ if (entry !== "content" && entry !== "background" && entry !== "youtubeBridge") 
 // the popup bundle: any future cross-import between entries makes Rollup fail loudly instead of
 // emitting an `import` statement Chrome refuses to run as a classic script.
 export default defineConfig({
+  publicDir: false,
   build: {
     outDir: "dist",
     emptyOutDir: false,
