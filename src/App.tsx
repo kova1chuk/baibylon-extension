@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { VoicewaveMark, VoicewaveWordmark } from "./components/VoicewaveMark";
 import { Button } from "./components/ui/button";
 import { useToken } from "./hooks/useToken";
 import { ApiError, clearToken } from "./lib/api";
@@ -10,6 +11,7 @@ import {
   resumeSignIn,
   signIn,
 } from "./lib/deviceAuth";
+import { useTheme } from "./providers/ThemeProvider";
 
 function describeSignInError(error: unknown): string {
   if (error instanceof DeviceAuthError) {
@@ -24,6 +26,7 @@ function describeSignInError(error: unknown): string {
 }
 
 function App() {
+  const { theme } = useTheme();
   const { token, loading, refresh } = useToken();
   const [code, setCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +85,10 @@ function App() {
   return (
     <div className="w-96 bg-background text-foreground p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h1 className="text-sm font-semibold">Vocairo</h1>
+        <div className="flex items-center gap-2">
+          <VoicewaveMark className="h-5 w-auto" scheme={theme} />
+          <VoicewaveWordmark scheme={theme} />
+        </div>
         <ThemeToggle />
       </div>
 

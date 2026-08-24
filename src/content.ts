@@ -1,6 +1,7 @@
 import { classifySelection } from "./lib/api";
 import { lookup, passage } from "./lib/apiBridge";
 import { errorText, escapeHtml, mountCard, renderLookup, renderPassage } from "./content/card";
+import { VOICEWAVE_BARS, VOICEWAVE_COLORS } from "./lib/voicewave";
 import { initYoutubeSubtitles } from "./youtube/subtitleBar";
 
 declare global {
@@ -56,6 +57,28 @@ if (!window.__vocairoContentScriptMounted) {
     button = null;
   }
 
+  function createVoicewaveMark(width: number, scheme: "light" | "dark") {
+    const colors = VOICEWAVE_COLORS[scheme];
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("viewBox", "0 0 28.2 24");
+    svg.setAttribute("width", String(width));
+    svg.setAttribute("height", String((width * 24) / 28.2));
+
+    VOICEWAVE_BARS.forEach((height, index) => {
+      const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      bar.setAttribute("x", String(index * 4.2));
+      bar.setAttribute("y", "0");
+      bar.setAttribute("width", "3");
+      bar.setAttribute("height", String(height));
+      bar.setAttribute("rx", "1.5");
+      bar.setAttribute("fill", index === 3 ? colors.accent : colors.ink);
+      svg.append(bar);
+    });
+
+    return svg;
+  }
+
   document.addEventListener("mouseup", (event) => {
     // Selection isn't always committed yet when mouseup fires, so read it on the next tick.
     window.setTimeout(() => {
@@ -66,14 +89,15 @@ if (!window.__vocairoContentScriptMounted) {
       }
       removeButton();
       const trigger = document.createElement("button");
-      trigger.textContent = "V";
+      trigger.setAttribute("aria-label", "Vocairo: подивитися");
+      trigger.append(createVoicewaveMark(22, "dark"));
       trigger.style.cssText = [
         "position:fixed",
         `left:${event.clientX + 6}px`,
         `top:${event.clientY + 6}px`,
         "z-index:2147483647",
-        "width:24px;height:24px;border-radius:12px;border:0",
-        "background:#4338ca;color:#fff;font:600 12px system-ui;cursor:pointer",
+        "width:32px;height:32px;border:0;border-radius:8px;padding:0",
+        "background:#07080d;display:flex;align-items:center;justify-content:center;cursor:pointer",
       ].join(";");
       trigger.addEventListener("mousedown", (downEvent) => {
         downEvent.preventDefault();
