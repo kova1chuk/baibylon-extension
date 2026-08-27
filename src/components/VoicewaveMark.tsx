@@ -34,7 +34,7 @@ export function VoicewaveWordmark({ scheme = "light" }: VoicewaveWordmarkProps) 
 
   return (
     <h1
-      className="text-sm font-semibold tracking-[-0.045em]"
+      className="text-base font-semibold tracking-[-0.045em]"
       style={{ color: colors.ink, fontFamily: "IBM Plex Sans, sans-serif" }}
     >
       Voc<span style={{ color: colors.accent }}>ai</span>ro

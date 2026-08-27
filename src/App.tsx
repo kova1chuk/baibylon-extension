@@ -86,7 +86,7 @@ function App() {
     <div className="w-96 bg-background text-foreground p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <VoicewaveMark className="h-5 w-auto" scheme={theme} />
+          <VoicewaveMark className="h-[18.4px] w-auto" scheme={theme} />
           <VoicewaveWordmark scheme={theme} />
         </div>
         <ThemeToggle />

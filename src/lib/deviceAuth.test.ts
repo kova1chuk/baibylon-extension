@@ -41,7 +41,7 @@ function jsonResponse(status: number, body: unknown): Response {
 const START = {
   deviceCode: "dc-1",
   userCode: "ABCD",
-  verificationUrl: "https://vocairo.app/device",
+  verificationUrl: "https://vocairo.com/device",
   expiresInSec: 600,
   intervalSec: 2,
 };
