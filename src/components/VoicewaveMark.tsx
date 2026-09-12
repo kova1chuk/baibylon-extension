@@ -14,15 +14,16 @@ export function VoicewaveMark({ className, scheme = "light" }: VoicewaveMarkProp
 
   return (
     <svg aria-hidden="true" className={className} viewBox="0 0 28.2 24">
-      {VOICEWAVE_BARS.map((height, index) => (
+      {VOICEWAVE_BARS.map(({ x, y, height, accent, opacity }) => (
         <rect
-          key={height}
-          x={index * 4.2}
-          y="0"
+          key={`${x}-${y}`}
+          x={x}
+          y={y}
           width="3"
           height={height}
           rx="1.5"
-          fill={scheme === "mono" || index !== 3 ? colors.ink : colors.accent}
+          opacity={opacity}
+          fill={scheme === "mono" || !accent ? colors.ink : colors.accent}
         />
       ))}
     </svg>

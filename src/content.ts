@@ -65,14 +65,15 @@ if (!window.__vocairoContentScriptMounted) {
     svg.setAttribute("width", String(width));
     svg.setAttribute("height", String((width * 24) / 28.2));
 
-    VOICEWAVE_BARS.forEach((height, index) => {
+    VOICEWAVE_BARS.forEach(({ x, y, height, accent, opacity }) => {
       const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      bar.setAttribute("x", String(index * 4.2));
-      bar.setAttribute("y", "0");
+      bar.setAttribute("x", String(x));
+      bar.setAttribute("y", String(y));
       bar.setAttribute("width", "3");
       bar.setAttribute("height", String(height));
       bar.setAttribute("rx", "1.5");
-      bar.setAttribute("fill", index === 3 ? colors.accent : colors.ink);
+      bar.setAttribute("opacity", String(opacity));
+      bar.setAttribute("fill", accent ? colors.accent : colors.ink);
       svg.append(bar);
     });
 
