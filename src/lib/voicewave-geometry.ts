@@ -5,24 +5,15 @@ export const voicewaveGeometry = {
   rectRadius: 2.6,
   palette: {
     dark: {
-      background: "#08172b",
-      ink: "#b7c5d8",
-      accent: "#78b0db",
-      inkStops: ["#d7e2ee", "#a4b5ca", "#879cb5", "#abbdd2", "#d1dfed"],
-      accentStops: ["#b0d8f3", "#78b0db", "#5488bb", "#79b0da", "#acd5f1"],
+      background: "#07080d",
+      ink: "#f1ede5",
+      accent: "#7fd0bb",
     },
     light: {
-      background: "#faf9ff",
-      ink: "#394a60",
-      accent: "#286691",
-      inkStops: ["#52657e", "#3e536e", "#2f4159", "#425972", "#62768e"],
-      accentStops: ["#4a83ac", "#2e6f9d", "#205a83", "#3479a5", "#528bb1"],
+      background: "#eef1e6",
+      ink: "#181b21",
+      accent: "#2f6b5e",
     },
-  },
-  glass: {
-    offsets: [0, 0.18, 0.52, 0.82, 1],
-    strokeWidth: 0.12,
-    strokeOpacity: 0.45,
   },
   bars: [
     {
