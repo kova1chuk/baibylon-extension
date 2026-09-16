@@ -1,7 +1,7 @@
 import { classifySelection } from "./lib/api";
 import { lookup, passage } from "./lib/apiBridge";
 import { errorText, escapeHtml, mountCard, renderLookup, renderPassage } from "./content/card";
-import { VOICEWAVE_BARS, VOICEWAVE_COLORS } from "./lib/voicewave";
+import { VOICEWAVE_BARS, VOICEWAVE_COLORS, voicewaveGeometry } from "./lib/voicewave";
 import { initYoutubeSubtitles } from "./youtube/subtitleBar";
 
 declare global {
@@ -61,17 +61,20 @@ if (!window.__vocairoContentScriptMounted) {
     const colors = VOICEWAVE_COLORS[scheme];
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("viewBox", "0 0 28.2 24");
+    svg.setAttribute("viewBox", voicewaveGeometry.viewBox.join(" "));
     svg.setAttribute("width", String(width));
-    svg.setAttribute("height", String((width * 24) / 28.2));
+    svg.setAttribute(
+      "height",
+      String((width * voicewaveGeometry.viewBox[3]) / voicewaveGeometry.viewBox[2]),
+    );
 
-    VOICEWAVE_BARS.forEach(({ x, y, height, accent, opacity }) => {
+    VOICEWAVE_BARS.forEach(({ x, y, width: barWidth, height, accent, opacity }) => {
       const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
       bar.setAttribute("x", String(x));
       bar.setAttribute("y", String(y));
-      bar.setAttribute("width", "3");
+      bar.setAttribute("width", String(barWidth));
       bar.setAttribute("height", String(height));
-      bar.setAttribute("rx", "1.5");
+      bar.setAttribute("rx", String(voicewaveGeometry.rectRadius));
       bar.setAttribute("opacity", String(opacity));
       bar.setAttribute("fill", accent ? colors.accent : colors.ink);
       svg.append(bar);

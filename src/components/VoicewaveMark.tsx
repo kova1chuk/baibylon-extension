@@ -1,4 +1,4 @@
-import { VOICEWAVE_BARS, VOICEWAVE_COLORS } from "../lib/voicewave";
+import { VOICEWAVE_BARS, VOICEWAVE_COLORS, voicewaveGeometry } from "../lib/voicewave";
 
 type VoicewaveMarkProps = {
   className?: string;
@@ -13,15 +13,15 @@ export function VoicewaveMark({ className, scheme = "light" }: VoicewaveMarkProp
   const colors = VOICEWAVE_COLORS[scheme === "dark" ? "dark" : "light"];
 
   return (
-    <svg aria-hidden="true" className={className} viewBox="0 0 28.2 24">
-      {VOICEWAVE_BARS.map(({ x, y, height, accent, opacity }) => (
+    <svg aria-hidden="true" className={className} viewBox={voicewaveGeometry.viewBox.join(" ")}>
+      {VOICEWAVE_BARS.map(({ x, y, width, height, accent, opacity }) => (
         <rect
           key={`${x}-${y}`}
           x={x}
           y={y}
-          width="3"
+          width={width}
           height={height}
-          rx="1.5"
+          rx={voicewaveGeometry.rectRadius}
           opacity={opacity}
           fill={scheme === "mono" || !accent ? colors.ink : colors.accent}
         />
