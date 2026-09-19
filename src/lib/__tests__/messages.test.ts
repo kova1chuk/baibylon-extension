@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, type ApiErrorKind } from "./api";
-import { deserializeError, isApiRequestMessage, serializeError } from "./messages";
+import { ApiError, type ApiErrorKind } from "../api";
+import { deserializeError, isApiRequestMessage, serializeError } from "../messages";
 
 const KINDS: ApiErrorKind[] = ["network", "notSignedIn", "unauthorized", "http"];
 

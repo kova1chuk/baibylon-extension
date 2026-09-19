@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getToken } from "./api";
+import { getToken } from "../api";
 import {
   DeviceAuthBusyError,
   DeviceAuthError,
   getPendingDeviceAuth,
   resumeSignIn,
   signIn,
-} from "./deviceAuth";
+} from "../deviceAuth";
 
 function createFakeChrome() {
   const store: Record<string, unknown> = {};

@@ -7,8 +7,8 @@ import {
   setToken,
   startDeviceAuth,
   unwrap,
-} from "./api";
-import { DEFAULT_API_BASE_URL, resolveApiBaseUrl } from "./config";
+} from "../api";
+import { DEFAULT_API_BASE_URL, resolveApiBaseUrl } from "../config";
 
 function createFakeChrome() {
   const store: Record<string, unknown> = {};

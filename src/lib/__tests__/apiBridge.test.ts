@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { errorText } from "../content/card";
-import { ApiError, type ApiErrorKind } from "./api";
-import { WORKER_REQUEST_TIMEOUT_MS, accountLearningLanguage, lookup, passage } from "./apiBridge";
-import { serializeError } from "./messages";
+import { errorText } from "../../content/card";
+import { ApiError, type ApiErrorKind } from "../api";
+import { WORKER_REQUEST_TIMEOUT_MS, accountLearningLanguage, lookup, passage } from "../apiBridge";
+import { serializeError } from "../messages";
 
 const KINDS: ApiErrorKind[] = ["network", "notSignedIn", "unauthorized", "http"];
 

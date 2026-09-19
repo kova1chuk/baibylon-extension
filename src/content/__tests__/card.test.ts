@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { ApiError } from "../lib/api";
-import type { LookupResult, PassageResult } from "../lib/types";
-import { errorText, escapeHtml, renderLookup, renderPassage } from "./card";
+import { ApiError } from "../../lib/api";
+import type { LookupResult, PassageResult } from "../../lib/types";
+import { errorText, escapeHtml, renderLookup, renderPassage } from "../card";
 
 describe("escapeHtml", () => {
   it("escapes all five HTML-sensitive characters", () => {

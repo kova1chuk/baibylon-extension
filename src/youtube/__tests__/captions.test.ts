@@ -11,7 +11,7 @@ import {
   resolveCaptionDisplay,
   selectCaptionTrack,
   splitIntoWordTokens,
-} from "./captions";
+} from "../captions";
 
 describe("extractVideoId", () => {
   it("reads the v param off a watch URL", () => {

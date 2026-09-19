@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setToken } from "./lib/api";
+import { setToken } from "../lib/api";
 
 function createFakeChrome(
   overrides: {
@@ -47,7 +47,7 @@ async function loadListener(
 ): Promise<ApiMessageListener> {
   const onMessage = vi.fn();
   globalThis.chrome = createFakeChrome({ onMessage, ...options });
-  await import("./background");
+  await import("../background");
   return onMessage.mock.calls[0]![0] as ApiMessageListener;
 }
 
@@ -87,7 +87,7 @@ describe("showSelectionInTab", () => {
     const executeScript = vi.fn();
     globalThis.chrome = createFakeChrome({ sendMessage, executeScript });
 
-    const { showSelectionInTab } = await import("./background");
+    const { showSelectionInTab } = await import("../background");
     await showSelectionInTab(7, "hello");
 
     expect(sendMessage).toHaveBeenCalledTimes(1);
@@ -105,7 +105,7 @@ describe("showSelectionInTab", () => {
     const executeScript = vi.fn().mockResolvedValue(undefined);
     globalThis.chrome = createFakeChrome({ sendMessage, executeScript });
 
-    const { showSelectionInTab } = await import("./background");
+    const { showSelectionInTab } = await import("../background");
     await showSelectionInTab(7, "hello");
 
     expect(executeScript).toHaveBeenCalledWith({ target: { tabId: 7 }, files: ["content.js"] });
@@ -118,7 +118,7 @@ describe("showSelectionInTab", () => {
     const executeScript = vi.fn().mockRejectedValue(new Error("Cannot access a chrome:// URL"));
     globalThis.chrome = createFakeChrome({ sendMessage, executeScript });
 
-    const { showSelectionInTab } = await import("./background");
+    const { showSelectionInTab } = await import("../background");
 
     await expect(showSelectionInTab(7, "hello")).resolves.toBeUndefined();
   });

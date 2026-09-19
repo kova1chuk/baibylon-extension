@@ -1,7 +1,7 @@
 import { classifySelection } from "./lib/api";
 import { lookup, passage } from "./lib/apiBridge";
 import { errorText, escapeHtml, mountCard, renderLookup, renderPassage } from "./content/card";
-import { VOICEWAVE_BARS, VOICEWAVE_COLORS, voicewaveGeometry } from "./lib/voicewave";
+import { VOICEWAVE_COLORS, VOICEWAVE_PATHS, voicewaveGeometry } from "./lib/voicewave";
 import { initYoutubeSubtitles } from "./youtube/subtitleBar";
 
 declare global {
@@ -68,16 +68,11 @@ if (!window.__vocairoContentScriptMounted) {
       String((width * voicewaveGeometry.viewBox[3]) / voicewaveGeometry.viewBox[2]),
     );
 
-    VOICEWAVE_BARS.forEach(({ x, y, width: barWidth, height, accent, opacity }) => {
-      const bar = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      bar.setAttribute("x", String(x));
-      bar.setAttribute("y", String(y));
-      bar.setAttribute("width", String(barWidth));
-      bar.setAttribute("height", String(height));
-      bar.setAttribute("rx", String(voicewaveGeometry.rectRadius));
-      bar.setAttribute("opacity", String(opacity));
-      bar.setAttribute("fill", accent ? colors.accent : colors.ink);
-      svg.append(bar);
+    VOICEWAVE_PATHS.forEach(({ d, accent }) => {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", d);
+      path.setAttribute("fill", accent ? colors.accent : colors.ink);
+      svg.append(path);
     });
 
     return svg;
