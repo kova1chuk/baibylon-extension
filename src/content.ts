@@ -1,7 +1,6 @@
 import { classifySelection } from "./lib/api";
 import { lookup, passage } from "./lib/apiBridge";
 import { errorText, escapeHtml, mountCard, renderLookup, renderPassage } from "./content/card";
-import { VOICEWAVE_COLORS, VOICEWAVE_PATHS, voicewaveGeometry } from "./lib/voicewave";
 import { initYoutubeSubtitles } from "./youtube/subtitleBar";
 
 declare global {
@@ -57,25 +56,13 @@ if (!window.__vocairoContentScriptMounted) {
     button = null;
   }
 
-  function createVoicewaveMark(width: number, scheme: "light" | "dark") {
-    const colors = VOICEWAVE_COLORS[scheme];
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("viewBox", voicewaveGeometry.viewBox.join(" "));
-    svg.setAttribute("width", String(width));
-    svg.setAttribute(
-      "height",
-      String((width * voicewaveGeometry.viewBox[3]) / voicewaveGeometry.viewBox[2]),
-    );
-
-    VOICEWAVE_PATHS.forEach(({ d, accent }) => {
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", d);
-      path.setAttribute("fill", accent ? colors.accent : colors.ink);
-      svg.append(path);
-    });
-
-    return svg;
+  function createVoicewaveMark(width: number) {
+    const image = document.createElement("img");
+    image.src = chrome.runtime.getURL("brand/vocairo-icon.png");
+    image.alt = "";
+    image.width = width;
+    image.height = width;
+    return image;
   }
 
   document.addEventListener("mouseup", (event) => {
@@ -89,7 +76,7 @@ if (!window.__vocairoContentScriptMounted) {
       removeButton();
       const trigger = document.createElement("button");
       trigger.setAttribute("aria-label", "Vocairo: подивитися");
-      trigger.append(createVoicewaveMark(22, "dark"));
+      trigger.append(createVoicewaveMark(32));
       trigger.style.cssText = [
         "position:fixed",
         `left:${event.clientX + 6}px`,

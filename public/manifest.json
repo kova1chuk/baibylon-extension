@@ -11,6 +11,12 @@
   },
   "permissions": ["activeTab", "storage", "contextMenus", "scripting"],
   "host_permissions": [],
+  "web_accessible_resources": [
+    {
+      "resources": ["brand/vocairo-icon.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "action": {
     "default_popup": "index.html",
     "default_title": "Vocairo",
